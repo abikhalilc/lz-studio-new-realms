@@ -1,0 +1,199 @@
+OC41 Step 3: service and identity review
+Reviewed: 2026-11-05 (Asia/Dubai)
+Application baseline: 087e43b
+Status: approved review complete; implementation proposals below are unapproved.
+
+Scope and decision
+------------------
+The user approved reviewing OC41 service and identity-domain differences and
+defining the required adjustments. This step changes documentation only.
+Do not treat it as approval to implement the proposals, enable OC41 in Studio,
+create groups, grant policies, adopt resources or deploy a landing zone.
+
+Recommended next change: optional reuse of the existing Default identity domain
+in the generator, with consistent group and policy references across selected
+workloads. Keep all existing new-domain defaults and published snapshots stable.
+No evidence from this review justifies an OC41-wide security-service removal.
+
+Evidence levels
+---------------
+- Source contract: Orchestrator v2.2.0, its pinned IAM v0.3.5 and Security v0.2.3
+  modules, and the local generator and Studio were inspected.
+- Live read-only evidence: the Step 1 region/domain/service-policy checks plus
+  ListTargets, ListDetectorRecipes and ListResponderRecipes in PCZ.
+- Not performed: Terraform init/validate/plan/apply, domain/group creation,
+  resource adoption, recipe cloning or service provisioning.
+Source compatibility and successful list calls do not prove deployment success.
+
+Identity-domain findings
+------------------------
+1. The inspected Du tenancy has an ACTIVE Default identity domain in PCZ.
+   Its OCID was not provided in the saved profile and is not stored here.
+2. gen/builders/iam/identity_domains.libsonnet always emits a new COMMON-DOMAIN
+   definition named id_lz_common, with license type free, and directs base groups
+   to COMMON-DOMAIN. This differs from using the existing Default domain.
+3. gen/builders/iam/context.libsonnet hardcodes id_lz_common as the group-policy
+   qualifier. Base tenancy/project policies and RPC requester references consume
+   that context.
+4. ExaDB IAM hardcodes the same display name independently in
+   gen/workload-extensions/exadb/iam.libsonnet. Its group definitions contribute
+   through identity_domain_groups_configuration.
+5. OKE and OCVS IAM also hardcode id_lz_common. Their groups are emitted through
+   groups_configuration, handled by the legacy oci_identity_group module rather
+   than the SCIM identity-domain group path. The groups' actual domain and the
+   policy qualifier must be checked together; changing only base IAM cannot
+   establish consistent workload identity behavior. This is a source-level
+   consistency concern, not a claim that an existing deployment was tested.
+6. Some standalone Exadata publication adapters explicitly bind COMMON-DOMAIN.
+   Keep their existing publication contract intact; do not accidentally change
+   published profiles while adding a config-mode option.
+7. FoundationConfig and LzConfig currently have no identity-domain selection.
+   A generator-only option would also need later Studio model, input,
+   serialization, import, saved-design and review support to be usable in Studio.
+
+Existing-domain deployment contract
+-----------------------------------
+The pinned IAM module supports existing domains without creating a domain:
+- identity-domains/main.tf creates domains only from the entries in
+  identity_domains_configuration.identity_domains; null configuration creates
+  no domain through that resource.
+- identity-domains/groups.tf resolves a literal domain OCID, or a dependency key,
+  then reads its URL with data.oci_identity_domain.grp_domain and uses that URL
+  for SCIM group operations.
+- A domain display name alone is not accepted as a lookup selector by this path.
+- Orchestrator iam.tf forwards the default group domain ID and supports the
+  identity_domains_dependency map. rms-facade/get_dependencies.tf recognizes the
+  identity_domains family in dependency input files.
+
+Therefore, a literal existing-domain OCID can use the current Orchestrator
+contract. An Orchestrator source change is not shown to be necessary for this
+path. The browser must not receive signing keys or authenticated CLI access;
+the operator supplies deployment metadata privately and authenticates outside
+Studio as before. A domain OCID identifies the domain; it grants no access.
+
+Proposed identity behavior for separate approval
+------------------------------------------------
+- Add an explicit, optional config-mode choice to use the existing Default
+  domain. Retain the existing id_lz_common creation behavior when omitted.
+  Do not infer domain IDs from realm, tenancy OCID, user OCID or fingerprint.
+- Require the real domain OCID for existing mode. Validate its resource type
+  and selected realm at the input boundary. Default is the intended display
+  name; arbitrary custom existing domains are outside the first scoped change.
+- Existing mode must emit no new domain definition and no domain-replication
+  resource request. It may create the explicitly requested landing-zone groups
+  within Default; it must not adopt existing groups or change memberships
+  implicitly. Check conflicting group names before a deployment.
+- Base IAM and supported workload policies must consistently qualify the chosen
+  domain. Pass normalized identity context to builders; do not replace strings
+  in generated JSON or edit published snapshots.
+- Exercise OKE, OCVS, ExaDB-D and ExaDB-C@C policy/group consistency where those
+  extensions support the selected configuration. Unsupported combinations must
+  fail clearly rather than silently creating groups in another domain.
+- Keep OC1/OC19 defaults, published profiles and existing group-membership
+  management behavior unchanged. This is for new deployment configuration,
+  not migration of an already managed id_lz_common domain or groups.
+
+Cloud Guard findings
+--------------------
+Read-only PCZ calls found one tenancy-root COMPARTMENT target and the Oracle
+configuration, activity and threat detector recipes plus the Oracle responder
+recipe. Counts and recipe categories are recorded without customer target names,
+target OCIDs, tenancy identifiers or private recipe names.
+
+The pinned Security module:
+- Creates the Cloud Guard enablement resource only when the service is DISABLED.
+- Uses ignore_existing_targets=true by default. An existing target with a
+  different name from the requested one is excluded; a matching name may remain
+  in the resource map. Name equality does not establish Terraform ownership.
+- Determines recipe cloning from the remaining target requests. An existing
+  ignored root target does not automatically receive Studio's requested cloned
+  recipes, so ENABLED alone is not proof that those settings were applied.
+- Looks up exact Oracle detector/responder recipe names. Those names are present
+  in the inspected PCZ catalog; cloning permissions and execution are untested.
+
+Recommendation: retain Cloud Guard generation. Add explicit deployment-handover
+guidance to inspect the existing target's coverage, recipes and Terraform state.
+Do not disable, delete, import or replace it automatically. Do not describe an
+ignored target as newly provisioned by this stack. Reconcile recipe ownership
+only through a separately reviewed deployment action if necessary.
+
+Service disposition
+-------------------
+Cloud Guard: keep; enabled and required recipe catalog entries observed. Existing
+  target handling requires the handover clarification above.
+Security Zones: keep; all 26 distinct custom-policy IDs are verified. Recipe and
+  zone creation, target enforcement and permissions remain untested.
+Vulnerability Scanning: keep; service-catalog presence only. Host recipe/target
+  creation, agent behavior and permissions remain release-validation items.
+Vault/CMEK: keep the selected CIS behavior. KMS catalog presence does not establish
+  key creation, service grants, capacity or every key type. CIS1 is not an
+  OC41-wide substitute for resolving CIS2 prerequisites.
+Events/Notifications/Logging/Monitoring/Service Connectors: keep; relevant catalog
+  entries observed. Validate configured sources, destinations and IAM at release.
+Network Firewall and load balancers: no blanket exclusion established. Hub A/B/C
+  remain subject to selected-service availability and deployment validation.
+OKE/Exadata/VMware: retain the supported generator design scope; catalog/product
+  coverage does not verify images, versions, quotas or provisioning. Their IAM
+  must follow the chosen domain before claiming existing-domain compatibility.
+FastConnect: keep manual provider-service OCID entry. Do not infer dropdown
+  constants from the service catalog or provider marketing coverage.
+Usage reports: retain the approved Step 2 omission of unverified cross-tenancy
+  access; local usage-report/budget permissions remain.
+
+Do not add arbitrary per-service switches merely because evidence is incomplete.
+If a concrete unsupported service is established later, define the exact config
+contract and all affected IAM, diagrams, output files and instructions before
+implementing a capability gate. Never silently drop security controls.
+
+Approval-sized implementation sequence
+--------------------------------------
+3A (next proposal): generator support for optional existing Default domain,
+  including base/workload group-policy consistency, schema documentation and
+  tests. No Studio UI enablement, OCI writes or migration.
+  Acceptance: no domain is created in existing mode; every selected workload's
+  groups/policies resolve consistently; malformed/mismatched IDs are rejected;
+  omitted choice preserves current OC1/OC19 and published output behavior.
+3B (subsequent proposal): Studio identity selection and metadata entry, with
+  serialization/import/review and saved-design handling. Require enough input to
+  identify the existing domain. Keep OC41 hidden until the region UI step.
+  Acceptance: explicit choice round-trips, private metadata is not committed,
+  and missing/inconsistent domain input blocks generation.
+3C (subsequent proposal): deployment-handover clarification for existing Cloud
+  Guard targets and the usage-report limitation. No automatic target adoption.
+  Acceptance: UI/ZIP instructions accurately distinguish requested resources,
+  existing coverage and untested prerequisites.
+
+Then resume original Step 4 (region UI), Step 5 (realm-aware deployment links),
+and Step 6 (approved runtime validation). None are approved by this review.
+
+Affected source areas
+---------------------
+gen/config.libsonnet; gen/builders/iam.libsonnet;
+gen/builders/iam/{context,identity_domains,project_policies,tenancy_policies,
+remote_peering_policies}.libsonnet; extension context/metadata plumbing and the
+OKE, OCVS and ExaDB IAM builders; config reference and extension-owned tests.
+Later UI work: model/types.ts, model/defaults.ts, services/lzConfig.ts,
+services/importConfig.ts, services/lzStore.ts, FoundationStep.tsx, ReviewStep.tsx,
+generated resource/diagram derivations where affected, deployment.ts and tests.
+Some listed files may need no edits after the implementation chooses the exact
+contract. Follow each extension's AGENTS.md before touching its implementation.
+
+Validation and sources
+----------------------
+Review only: pinned source checks, successful read-only Cloud Guard inventory
+calls, customer-identifier exclusion and git whitespace checks. No application
+test run or live resource change was necessary or performed for this document.
+
+https://github.com/oci-landing-zones/terraform-oci-modules-orchestrator/blob/v2.2.0/iam.tf
+https://github.com/oci-landing-zones/terraform-oci-modules-orchestrator/blob/v2.2.0/rms-facade/get_dependencies.tf
+https://github.com/oci-landing-zones/terraform-oci-modules-iam/blob/v0.3.5/identity-domains/groups.tf
+https://github.com/oci-landing-zones/terraform-oci-modules-iam/blob/v0.3.5/identity-domains/main.tf
+https://github.com/oci-landing-zones/terraform-oci-modules-iam/blob/v0.3.5/groups/main.tf
+https://github.com/oci-landing-zones/terraform-oci-modules-security/blob/v0.2.3/cloud-guard/main.tf
+https://github.com/oci-landing-zones/terraform-oci-modules-security/blob/v0.2.3/cloud-guard/data_sources.tf
+https://github.com/oci-landing-zones/terraform-oci-modules-security/blob/v0.2.3/cloud-guard/variables.tf
+OC41-VERIFIED-PROFILE.txt and OC41-SECURITY-POLICIES.txt (Step 1 evidence).
+Local generator and Studio source at 087e43b (source paths listed above).
+
+The IAM source archive follows the pinned oracle-quickstart URL's repository
+redirect to terraform-oci-modules-iam. Version v0.3.5 was inspected, not HEAD.

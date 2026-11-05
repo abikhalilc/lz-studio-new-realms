@@ -1,6 +1,7 @@
 Du Alloy OC41 support: comparison and approval plan
 Recorded: 2026-11-05
 Status: Steps 1 and 2 complete; Step 2 generator changes tested.
+Step 3 review complete; its implementation proposals require separate approval.
 Later steps remain unapproved. Studio still exposes only OC1 and OC19.
 
 Scope
@@ -88,6 +89,13 @@ Step 2: Add generator realm support and verified realm constants.
   Dependency: Step 1 must establish the constants and supported service scope.
 
 Step 3: Handle differences in service availability and IAM, where needed.
+  Approved scope: review OC41 service/identity differences and define required
+  adjustments. See OC41-STEP3-REVIEW.txt. This approval does not authorize the
+  implementation proposals 3A, 3B or 3C; approve them separately.
+  Result: existing Default-domain support is feasible through the pinned
+  contract but requires consistent base/workload identity references. Existing
+  Cloud Guard target handling needs explicit handover guidance. No blanket
+  OC41 service removal is supported by the inspected evidence.
   Main areas: generator security, observability and IAM builders; Studio model,
   import/export and validation; diagram inventory and deployment file selection.
   Specify the exact supported subset before implementation. Do not silently
