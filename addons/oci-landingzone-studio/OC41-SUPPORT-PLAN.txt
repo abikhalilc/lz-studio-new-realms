@@ -1,6 +1,6 @@
 Du Alloy OC41 support: comparison and approval plan
 Recorded: 2026-11-05
-Status: proposed; application changes have not been approved or implemented.
+Status: Step 1 approved and documented; application changes remain unapproved.
 
 Scope
 -----
@@ -60,6 +60,9 @@ Confirmed differences
 Proposed steps, each requiring separate approval
 ------------------------------------------------
 Step 1: Establish the verified OC41 profile (documentation only).
+  Result: see OC41-VERIFIED-PROFILE.txt and OC41-SECURITY-POLICIES.txt.
+  Public metadata and read-only DU-profile inventory checks completed on
+  2026-11-05. Remaining uncertainties are explicitly documented in the profile.
   Confirm region identifier, official region key/short name, realm domain and
   console URL, home-region constraints, service availability, identity-domain
   support, Security Zone policies and usage-report configuration.

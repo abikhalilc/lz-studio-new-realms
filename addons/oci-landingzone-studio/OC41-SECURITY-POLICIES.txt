@@ -1,0 +1,333 @@
+OC41 managed Security Zone policy catalog
+Verified: 2026-11-05, target region me-dubai-3
+Source: read-only ListSecurityPolicies using existing DU profile
+Count: 82; no customer identifiers or credentials included.
+Recipe labels refer to baseline gen/constants.libsonnet; no runtime changes made.
+
+deny DRG_gateway
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaa5a3pj7q4odot3sh5odlxlcezjqnh247qszwsy33swxkpfcc4rwwq
+Current recipe membership: not in the explicit baseline custom-policy lists
+
+deny LPG_gateway
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaanvmmvw2bll4zyaisxct4mi5fxsmw7ncgfclxxmgh3qtsq5mgumga
+Current recipe membership: not in the explicit baseline custom-policy lists
+
+deny NAT_gateway
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaafatd77cjshc4nfd3kktjaphgvo46bd5yrb7iwozarksf3e2555eq
+Current recipe membership: not in the explicit baseline custom-policy lists
+
+deny SGW_gateway
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaa7tguf6alwlwkfmlbq3uamibechgyuccgi6xgzawczmczdgby24za
+Current recipe membership: not in the explicit baseline custom-policy lists
+
+deny attached_block_volume_not_in_security_zone_move_to_compartment_in_security_zone
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaaqlpaf5tc3xfqdzdw2rtx7hk4ifywzml3eh3upspeh4s6x4epaskq
+Current recipe membership: environment
+
+deny attached_boot_volume_not_in_security_zone_move_to_compartment_in_security_zone
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaaxou4266jlusvklor34czqvloa64k5dsok5cejug2bxi2jvqy32zq
+Current recipe membership: environment
+
+deny block_volume_in_security_zone_attach_to_instance_not_in_security_zone
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaaf45c2imtiuyxbccuwrh3s7is5lokpx5ksr4heu46c6mz6k35dsqa
+Current recipe membership: environment
+
+deny block_volume_in_security_zone_move_to_compartment_not_in_security_zone
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaajscm24dhll5wk65k6q4mmkopiykpqrumtururitjaxk3j4ibe3ua
+Current recipe membership: environment
+
+deny block_volume_not_in_security_zone_attach_to_instance_in_security_zone
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaa5qtljtbaeacnhfhr7hfs5nd3jp6jin6grbdgf6izkf4ukxmatjpa
+Current recipe membership: environment
+
+deny block_volume_without_vault_key
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaa7pgtjyod3pze6wuylgmts6ensywmeplabsxqq2bk4ighps4fqq4a
+Current recipe membership: not in the explicit baseline custom-policy lists
+
+deny boot_volume_in_security_zone_attach_to_instance_not_in_security_zone
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaa6oycc62uuvpi6oddkzku6x2vzhraud7ynkbdeols5i4khwroklva
+Current recipe membership: environment
+
+deny boot_volume_in_security_zone_move_to_compartment_not_in_security_zone
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaaol3pxbbikegih24c7l4um7wqeeun2dpkvgm3izz5syf755xfscgq
+Current recipe membership: environment
+
+deny boot_volume_not_in_security_zone_attach_to_instance_in_security_zone
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaauvfkentmqda6mq7lxekkstjpe7kwgmrpkadzt7krhrt66tliourq
+Current recipe membership: environment
+
+deny boot_volume_without_vault_key
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaaxxs63ulmtcnxqmcvy6eaozh5jdtiaa2bk7wll5bbdsbnmmoczp5a
+Current recipe membership: not in the explicit baseline custom-policy lists
+
+deny bucket_in_security_zone_move_to_compartment_not_in_security_zone
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaawol5fz6qkrkxm5ui7n3car44e5wbs54thnku2hjxwaedi5ee6htq
+Current recipe membership: environment
+
+deny buckets_without_vault_key
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaaqmq4jqcxqbjj5cjzb7t5ira66dctyypq2m2o4psxmx6atp45lyda
+Current recipe membership: not in the explicit baseline custom-policy lists
+
+deny cloud_shell_public_network
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaamewv6k5a7cik6ds6m6bsijwkiixpfzgsqzvrjlns5pxg6lslrzgq
+Current recipe membership: environment
+
+deny create_drg
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaar35m5kdym7ji4mw4klixigpy3s6cnznt66irzgld5xz7aaoyaiiq
+Current recipe membership: not in the explicit baseline custom-policy lists
+
+deny create_or_modify_vcn_security_list
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaapsjw2rqmalc2wuxn6upnrmjzfbpm4vcxfgumsniblai3thrdowqq
+Current recipe membership: not in the explicit baseline custom-policy lists
+
+deny create_vcn_security_list
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaaarregcynoigbqvd6kxkyk4mr6yxjcsg4m2i3w54evidfh243hloq
+Current recipe membership: not in the explicit baseline custom-policy lists
+
+deny database_in_security_zone_create_clone_not_in_security_zone
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaaby4h5ojgqrbtajfvtx2qu5yp3l2u4r6g3ai2nxw4bgywusm473xa
+Current recipe membership: not in the explicit baseline custom-policy lists
+
+deny database_not_in_security_zone_create_from_backup_in_security_zone
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaaepqj6x3jkkprubit2pudh6f3oyc3zyj2ycrmcox44duszghlo4iq
+Current recipe membership: not in the explicit baseline custom-policy lists
+
+deny database_with_dataguard_association_move_to_compartment_in_security_zone
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaarkvvuzwtc6xwwr57zg6fymgkco3lbt35c7r4lnahw4ab5i3vkbrq
+Current recipe membership: not in the explicit baseline custom-policy lists
+
+deny database_without_backup
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaat5zxcpcy6vrl2xxcohi7o64vezhkwcp2ixbtreapdq4uowdu7nqq
+Current recipe membership: not in the explicit baseline custom-policy lists
+
+deny dataguard_association_with_db_instances_not_in_security_zones
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaapvmbf77sfr43sryhmdwoztbjck2h5fvsm5kyoc4zomfju6243oja
+Current recipe membership: not in the explicit baseline custom-policy lists
+
+deny db_instance_move_to_compartment_not_in_security_zone
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaaegi6cweu5jqwipqhj5quz4pebfd76djed4lfogslzuawqavkrsjq
+Current recipe membership: environment
+
+deny db_instance_public_access
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaauoi2xnbusvfd4yffdjaaazk64gndp4flumaw3r7vedwndqd6vmrq
+Current recipe membership: not in the explicit baseline custom-policy lists
+
+deny db_instance_subnet_not_in_security_zone
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaazhmr3fyx6xwutuqpiddvfk3wqnj6kxxtiyohl3v47xzpcm77uwfa
+Current recipe membership: not in the explicit baseline custom-policy lists
+
+deny db_resource_association_not_in_security_zone
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaakbmbc7p52m5ynbkb2mg2ogkelkpe5n5pty4qpavsegbbnoypys5q
+Current recipe membership: not in the explicit baseline custom-policy lists
+
+deny delete_VCN
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaavolswrbfqy6qn2qe7zek2dumml6pbmyzv47q6jfwdatrywmqumba
+Current recipe membership: shared_network, environment
+
+deny delete_all_load_balancer_back_end_sets
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaawzax5b4z4l66yxcesbujzhkkt6g6fdjk5pkxz2r54mk7sq3ggvsa
+Current recipe membership: not in the explicit baseline custom-policy lists
+
+deny delete_certificate_authority
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaabpvrgbf7muzcqn7uw6ogfzsj2znogd25qxl7lwaxjubtqth7v3fq
+Current recipe membership: not in the explicit baseline custom-policy lists
+
+deny delete_network_security_group
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaazlzn66zeazf5npw46qah3wlqpfrugv7w4tjbomit2msr43stidga
+Current recipe membership: shared_network, environment
+
+deny delete_vcn_security_list
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaayxn5ccbavcx5w35uoozguju5zlovvtbnuvnrduxpdp3vsho33lba
+Current recipe membership: shared_network, environment
+
+deny detach_volume
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaabamsfe3vub657vidwwktmef6heqb7igof2p3n7mpmbkz7jj4cdca
+Current recipe membership: not in the explicit baseline custom-policy lists
+
+deny file_system_in_security_zone_clone_to_compartment_not_in_security_zone
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaadldlomr5moxliz3jyt4guuwoci72ysf3vplkpl4z22a46xtdhmfq
+Current recipe membership: not in the explicit baseline custom-policy lists
+
+deny file_system_in_security_zone_export_via_mount_target_not_in_security_zone
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaak2x2aomzhqoeg2bf4zgqyr3bg2ppsfhupn2xvu66zpuz7kbvae5a
+Current recipe membership: not in the explicit baseline custom-policy lists
+
+deny file_system_in_security_zone_move_to_compartment_not_in_security_zone
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaauhuzsidaju3mwy3llsetvm3dlc6ftel65ielfu7h4hg6q2cfsrxa
+Current recipe membership: environment
+
+deny file_system_not_in_security_zone_export_via_mount_target_in_security_zone
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaauah5cz3vxzpdvw4uz32hcgcmhogvuhacgyc7z3al42tfjey46eea
+Current recipe membership: environment
+
+deny file_system_without_vault_key
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaaff6n52aojbgdg46jpm3kn7nizmh6iwvr7myez7svtfxsfs7irigq
+Current recipe membership: not in the explicit baseline custom-policy lists
+
+deny free_database_creation
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaav2jhoksnefigh7lqz7j2fnhxjphs7thgf6fhgfgzh45kksr77uzq
+Current recipe membership: not in the explicit baseline custom-policy lists
+
+deny instance_in_security_zone_in_subnet_not_in_security_zone
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaaodtmgz53fekqtbnxrgzf32p4obyph2qka3szvzd433isc34y3w4a
+Current recipe membership: not in the explicit baseline custom-policy lists
+
+deny instance_in_security_zone_launch_from_boot_volume_not_in_security_zone
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaa544n6cyqrq6tato53ohh7vcz523af5dtuz6x54efhs6mb7bcw54a
+Current recipe membership: environment
+
+deny instance_in_security_zone_move_to_compartment_not_in_security_zone
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaa2lfkaypfwyykhbz65zlgc4lvypl64axzhnsqmegllgiyxbweruya
+Current recipe membership: environment
+
+deny instance_not_in_security_zone_launch_from_boot_volume_in_security_zone
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaay32fadjsdgsytdpyn4busugqftko2shttseljqbagapngiatxepa
+Current recipe membership: environment
+
+deny instance_not_in_security_zone_move_to_compartment_in_security_zone
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaah3k66efqfgo5ccjgvtkwbfpzj5yjajmw7vt5eub6ma4jp6su55zq
+Current recipe membership: environment
+
+deny instance_without_sanctioned_image
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaadhzmdbzaemersmvdahgtc5dbc4bf7l2rlsi6aaqwgq5ywokt4nrq
+Current recipe membership: not in the explicit baseline custom-policy lists
+
+deny internet_gateway
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaabs6kboflsfan2lihfnodhbeb75r4nxiolhlobvj6vqclx6j5yyha
+Current recipe membership: environment
+
+deny job_manage_egress_network
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaaxusdvz5iy35c7qmmxdhihzw5rjd7jdafcjb3e5xq7fax736j3pvq
+Current recipe membership: not in the explicit baseline custom-policy lists
+
+deny load_balancer_with_weak_SSL_communication
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaaxo4mcvvp77zmr6mjqlv2akdyyfuetafnd3bvkxqsizzqxjfwwqtq
+Current recipe membership: not in the explicit baseline custom-policy lists
+
+deny manage_DHCP_options_resource
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaakom3aqo6kcwln37pxmgeloc2fujy6yhsgphc653xrgtfszze6siq
+Current recipe membership: not in the explicit baseline custom-policy lists
+
+deny manage_DNS_resource
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaafzjjxtyyps2nd2ubrbbpxx7estjmygevpiw2qjahqpn6xfvtsxjq
+Current recipe membership: not in the explicit baseline custom-policy lists
+
+deny manage_bastion_resource
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaauo2hrxrmfmjhtwtcac2ydwarczdlocfp5uy2nxccp62gbdhzpxoq
+Current recipe membership: not in the explicit baseline custom-policy lists
+
+deny manage_compute_and_block_storage_resource
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaazymh7mtysg6msddi3dao3qcmx6s3f644u3agicq2kfqpgchg7d2a
+Current recipe membership: not in the explicit baseline custom-policy lists
+
+deny manage_file_storage_resource
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaa2w4jopmh3grz6ja52stz4tkru4h5dqj7wtfnppt6jdt2nnbxzgna
+Current recipe membership: not in the explicit baseline custom-policy lists
+
+deny manage_image_resource
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaaocjyb5t3re2yuypgmzal4nzmxks2ttqvhhk2scm44j5rcj5y5olq
+Current recipe membership: not in the explicit baseline custom-policy lists
+
+deny manage_oke_service
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaang535pftyecak2f7u5n3lvgg3h42edmhlzyxxjfl5lqutnfvop4a
+Current recipe membership: not in the explicit baseline custom-policy lists
+
+deny manage_vcn_route_tables
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaasgpn2k4appqwtenqxcrhkmjqjmms4c2vaz6vbmtoexlmw5vjagtq
+Current recipe membership: not in the explicit baseline custom-policy lists
+
+deny manage_virtual_network_resource
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaadqdgbpgctumooeukpo7z2y4ykhseyn75befwhit2roxvo2zvxwzq
+Current recipe membership: not in the explicit baseline custom-policy lists
+
+deny model_deploy_public_network
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaanl2u3if27w4qu446jdwf6h2mrwix7kqk3mrpr7ob5ga6durixsha
+Current recipe membership: not in the explicit baseline custom-policy lists
+
+deny mount_target_in_security_zone_create_with_subnet_not_in_security_zone
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaao5qwdxigf7jfnstvzlexk4fnwojlnwidfdi3o25ublxop536qgmq
+Current recipe membership: not in the explicit baseline custom-policy lists
+
+deny mount_target_in_security_zone_move_to_compartment_not_in_security_zone
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaawec56szedvf6hogbbnu7cxywm4xkmta53wuo7lenceiqyr4bx5hq
+Current recipe membership: environment
+
+deny mount_target_not_in_security_zone_create_with_subnet_in_security_zone
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaawebiliesbgzdguac5m5u332oj66afaab6ruovydpsdoexloguweq
+Current recipe membership: environment
+
+deny network_security_group_with_unsecure_ingress_rule
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaadpgsofr6omwprwahbfioklsoqlz32dia7gclaueu74omlgzhm6wq
+Current recipe membership: not in the explicit baseline custom-policy lists
+
+deny notebook_public_network
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaa3bj45kjq5hjotohuj6w5fadzkx6ph2mpnzwp6zkaz2s3ydd7py6a
+Current recipe membership: not in the explicit baseline custom-policy lists
+
+deny overly_permissive_IAM_policy
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaa455rq3zgvcdxkgbfpfgdxxn5n5rweqb5xzpfxi3blh3znqwyc4zq
+Current recipe membership: not in the explicit baseline custom-policy lists
+
+deny pipeline_manage_egress_network
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaaaxmdq7zy6bx3ncm6bl6qhu7c4ttgizshow57skbndhgiuncr3c7q
+Current recipe membership: not in the explicit baseline custom-policy lists
+
+deny public_buckets
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaa5ocyo7jqjzgjenvccch46buhpaaofplzxlp3xbxfcdwwk2tyrwqa
+Current recipe membership: not in the explicit baseline custom-policy lists
+
+deny public_exposure_of_security_zone_instances
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaatjxusobe3a7xq37hvkbqwhwvtbekpks2pg3h27yfq2u2dlkczdea
+Current recipe membership: not in the explicit baseline custom-policy lists
+
+deny public_load_balancer
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaa6j7b5bf3ytsno7a45r7xupqt2q342q2hlecnf7fgqpkq67stakda
+Current recipe membership: environment
+
+deny public_subnets
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaak5wxfr2r6kxmtd6bq6hqhyywfkj6pcnl74g3iui6qnlq7rof4ezq
+Current recipe membership: environment
+
+deny revoke_certificate_authority_version
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaahjgtmrkbo3nqqcofflg7jqfjjgstp74wuaptmw7ej24ezm3ecoeq
+Current recipe membership: not in the explicit baseline custom-policy lists
+
+deny security_list_to_allow_traffic_to_restricted_port
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaavn4zjk4e3fwslrk2nztvtvxgycb7sj2vyt4dyb6z3w5id6b6hada
+Current recipe membership: not in the explicit baseline custom-policy lists
+
+deny subnet_in_security_zone_move_to_compartment_not_in_security_zone
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaaw6v2nz4unovq3joqk6pguxpaqriws2vzd7gvpldgai47tl72wseq
+Current recipe membership: shared_network, environment
+
+deny terminate_instance
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaazhmxlmy42c5fljxrof2phaqrqw5vtar4vm5m6bq2t3d7uuchm6aq
+Current recipe membership: not in the explicit baseline custom-policy lists
+
+deny update_DHCP_options
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaaariplufkx7shxnuezdjqbec2qsccylljtmirf5lit27r453zdmya
+Current recipe membership: not in the explicit baseline custom-policy lists
+
+deny update_local_peering_gateway
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaa7ld4u7j4c3tifkutsbxzgw4ija76irnjiy2c6egd5netnspcyayq
+Current recipe membership: not in the explicit baseline custom-policy lists
+
+deny update_network_security_group_egress_rules
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaafcxvddsvpz6cljfnx5bqrbtrl2ygjs4ygevtd7bev7rc46mhqznq
+Current recipe membership: not in the explicit baseline custom-policy lists
+
+deny update_network_security_group_ingress_rules
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaayw3fxug322v5qabceor2wvha4jvkdt2d27ivumhjv6eiv7giw4iq
+Current recipe membership: not in the explicit baseline custom-policy lists
+
+deny update_route_table
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaaxwowk5jsfke343a22zg3h6h56ujillb2tbudzvyjok2bt7slsinq
+Current recipe membership: not in the explicit baseline custom-policy lists
+
+deny update_vcn_security_list_egress_rules
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaavqexukdqas4khzn2svgxz5v6tmqvmmizfokojgx7v56kgnou6xva
+Current recipe membership: not in the explicit baseline custom-policy lists
+
+deny update_vcn_security_list_ingress_rules
+ocid1.securityzonessecuritypolicy.oc41..aaaaaaaax6rhbpt63cts54zdywhvqz3kb6wn4g5mdhr5nlg4jh2e5pluzk5a
+Current recipe membership: not in the explicit baseline custom-policy lists

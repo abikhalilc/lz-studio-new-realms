@@ -1,0 +1,186 @@
+Du Alloy OC41: verified profile and remaining dependencies
+Verification date: 2026-11-05 (Asia/Dubai)
+Scope: approved Step 1, documentation and read-only inventory only.
+Application baseline: 9992be4; initial comparison plan: f367114.
+
+Disposition
+-----------
+Step 1's acceptance condition is met: required profile fields have evidence or
+an explicit unresolved status. This is not certification of an OC41 deployment.
+No Studio option, generator constant, IAM policy or OCI resource was changed.
+The user must separately approve Step 2; approval cannot substitute for missing
+values or service validation.
+
+Verified location and access metadata
+-------------------------------------
+Realm: oc41 (SDK metadata notation may use OC41).
+Realm domain: dutechcloud.ae.
+Target region: me-dubai-3.
+Official region key: PCZ; Studio naming form would be pcz.
+Other SDK-listed OC41 region: me-dubai-2, key ABR (naming form abr).
+Customer console base: https://cloud.dutechcloud.ae/.
+
+Evidence:
+- Oracle's NoSQL Rust SDK at revision
+  df926b42d657c180c466b729f13ee12d6b048dd4 contains both OC41 entries above.
+  SHA256 of its src/region.rs:
+  40aca58258a238433e0acbed8a16a0aba05bce7246d4d2a79b06e636b504b102.
+- Oracle's NoSQL Node SDK region reference also identifies me-dubai-3 as OC41.
+- Du's official National Hypercloud page links its Customer login to the
+  console base above. An unauthenticated HTTPS fetch returned HTTP 200 and the
+  console HTML referenced manifest.oc41.json. No sign-in was performed.
+- The user independently confirmed the target region, realm, API domain,
+  console URL and Default identity domain.
+- A successful authenticated ListRegionSubscriptions call using the existing
+  DU CLI profile returned me-dubai-3 / PCZ / READY / home=true and
+  me-dubai-2 / ABR / READY / home=false.
+
+The region-subscription result describes the inspected tenancy, not all Du
+tenancies. It does not establish DR readiness or service parity in me-dubai-2.
+The Resource Manager deep link and its ZIP import behavior remain untested;
+only the customer console base is verified.
+
+Identity and home-region evidence
+---------------------------------
+A successful ListDomains call returned an ACTIVE domain named Default, of type
+DEFAULT, with home region me-dubai-3. This confirms existing-domain access in the
+inspected tenancy. It does not prove permissions, subscription entitlement or
+quota to create Studio's additional identity domain.
+
+Oracle's general IAM documentation places tenancy IAM definitions and updates
+in the home region. Additional identity domains have their own home-region and
+replication rules. Preserve these distinctions when reviewing DR support.
+Do not globally assume that every OC41 tenancy has PCZ as its home region.
+
+Security Zone policy evidence
+-----------------------------
+A successful ListSecurityPolicies call returned 82 entries. The sanitized
+companion file OC41-SECURITY-POLICIES.txt records policy names and OC41 policy
+OCIDs only, without customer tenancy, user or compartment identifiers.
+
+Exact suffix comparison against gen/constants.libsonnet at the baseline found:
+- Shared-network recipe: all 4 required policy identifiers exist in OC41.
+- Environment recipe: all 26 required policy identifiers exist in OC41.
+- The shared-network set is a subset of the environment set: 26 distinct IDs.
+
+These matches come from the actual OC41 API response, not a guessed realm
+replacement. The returned policy names were inspected, including protections
+against VCN/security-list/NSG deletion, public load balancers, internet gateways,
+public subnets and moves across Security Zone boundaries.
+
+This establishes policy catalog presence, not authorization or successful
+creation of recipes/zones, nor end-to-end CIS1/CIS2 compatibility. No recipe or
+zone was created. Step 2 may use the verified identifiers only after approval.
+
+Security and service capability evidence
+----------------------------------------
+GetCloudGuardConfiguration returned status ENABLED and reporting region
+me-dubai-3 for the inspected tenancy. Disabling Cloud Guard for OC41 based only
+on the older quickstart would be unjustified.
+
+ListServices from the Limits API returned 89 service entries. Relevant entries:
+  cloudguard, compute, container-engine, database, events, fast-connect,
+  filesystem, identity, kms, load-balancer, logging, monitoring,
+  network-firewall, network-load-balancer-api, notifications, object-storage,
+  ocvp, resource-manager, service-connector-hub, streaming, tagging, vcn, vpn,
+  vulnerability-scanning.
+
+The catalog corroborates service discovery; it is not a provisionable-resource
+matrix. A catalog entry does not establish API permissions, capacity, quotas,
+specific features, shapes or successful operation of downstream Terraform
+modules. No absence or unsupported status is inferred from these checks.
+
+Du's public service page describes compute, networking, storage, databases,
+Kubernetes workloads and VMware, plus FastConnect/VPN connectivity and general
+IAM/audit capabilities. Treat that as advertised product coverage, not live
+tenant-specific provisioning validation.
+
+Service principal rules
+-----------------------
+Oracle's File Storage documentation specifies fssocprod for realm keys greater
+than 10. Applied to OC41, the documented principal is fssocprod.
+Oracle documents the Object Storage principal pattern objectstorage-<region>.
+For the verified target region this yields objectstorage-me-dubai-3; a separately
+selected ABR region would use objectstorage-me-dubai-2.
+These are documented rules, not a live grant/authorization test. No IAM grant
+was applied. Other generated service principals must retain contract review.
+
+SDK and provider compatibility
+------------------------------
+The read-only CLI checks used OCI CLI 3.71.0 with explicit process-local region
+metadata for OC41, dutechcloud.ae, PCZ and me-dubai-3. No CLI configuration or
+credential file was modified. Oracle documents this region-metadata mechanism.
+
+The inspected public Python SDK regions_definitions.py and Go SDK regions.go
+did not contain built-in OC41 entries. This is evidence that SDK region catalogs
+vary; it is not a statement that all SDK versions lack OC41 or that the selected
+Terraform provider is incompatible. A suitable Terraform provider version and
+its endpoint resolution must be validated separately before deployment support
+is claimed. Do not default unknown Alloy endpoints to oraclecloud.com.
+
+Remaining dependencies and decisions
+------------------------------------
+1. Usage-report configuration: no verified OC41 reporting-tenancy OCID or
+   operator statement that cross-tenancy report access is unnecessary was
+   supplied or retrieved. Never reuse OC1/OC19 reporting-tenancy identifiers.
+   The existing IAM builder can omit the cross-tenancy statements when no
+   reporting tenancy is configured, but that reduces functionality and requires
+   an explicit reviewed decision; it is not automatic full support.
+2. Identity-domain mode: existing Default domain is verified. Creating an
+   additional domain, its license type, quota and API permissions are untested.
+   Decide whether Studio should retain its current new-domain model or add a
+   separately scoped existing-domain option.
+3. Provisioning matrix: service catalog entries and enabled Cloud Guard are
+   verified. Exact supported features, quotas/capacity, scanning targets, Vault
+   key operations, service connectors, firewalls, workload images and OKE
+   versions remain untested. Do not silently remove controls or enable all
+   combinations on this evidence alone.
+4. Provider/Orchestrator runtime: no Terraform init, validate, plan or apply was
+   run. Provider version, endpoint discovery and Resource Manager source ZIP
+   ingestion remain release dependencies.
+5. Regional DR: ABR subscription is READY, but remote services, domain
+   replication, keys, grants and generated DR execution remain untested.
+6. FastConnect: catalog presence does not provide verified regional provider
+   service OCIDs. No provider-service dropdown constants were inferred.
+
+Evidence handling and validation
+--------------------------------
+The user provided an existing DU profile for read-only verification. Only that
+profile was used; no other tenancy profile was inspected or queried. Customer
+tenancy/user identifiers, tenancy names, key fingerprints, key paths, signing
+keys, authentication headers and tokens are excluded from Git artifacts.
+
+API checks performed: ListRegionSubscriptions, ListDomains,
+GetCloudGuardConfiguration, ListSecurityPolicies, ListServices (Limits).
+All were read-only. No create, update, delete, Terraform or deployment job was
+performed. Initial restricted-network access timed out; the permitted network
+retry succeeded. No application tests are needed for this documentation-only
+step; data assertions and git diff whitespace checks were performed.
+
+Sources, reviewed 2026-11-05
+----------------------------
+S1 Oracle SDK pinned source (region metadata):
+https://github.com/oracle/nosql-rust-sdk/blob/df926b42d657c180c466b729f13ee12d6b048dd4/src/region.rs
+S2 Oracle SDK region reference (independent OC41 target-region confirmation):
+https://oracle.github.io/nosql-node-sdk/classes/Region.html#ME_DUBAI_3
+S3 Du service offering and official customer-console link:
+https://www.du.ae/tech/nationalhypercloud-oracle
+S4 Public customer-console page (base only; not an authenticated route test):
+https://cloud.dutechcloud.ae/
+S5 Oracle IAM home-region documentation:
+https://docs.oracle.com/en-us/iaas/Content/Identity/regions/managingregions.htm
+S6 Oracle identity-domain creation and subscription constraints:
+https://docs.oracle.com/en-us/iaas/Content/Identity/domains/to-create-new-identity-domain.htm
+S7 Oracle File Storage service-principal rule:
+https://docs.oracle.com/en-us/iaas/Content/File/Tasks/encrypt-file-system.htm
+S8 Oracle Object Storage key-access service-principal pattern:
+https://docs.oracle.com/en/cloud/saas/applications-common/faude/configure-server-side-encryption-with-customer-managed-keys.html
+S9 Oracle SDK process-local region metadata mechanism:
+https://docs.oracle.com/en-us/iaas/Content/API/Concepts/sdk_adding_new_region_endpoints.htm
+S10 Python SDK catalog inspected on the verification date (mutable source):
+https://github.com/oracle/oci-python-sdk/blob/master/src/oci/regions_definitions.py
+S11 Go SDK catalog inspected on the verification date (mutable source):
+https://github.com/oracle/oci-go-sdk/blob/master/common/regions.go
+S12 Read-only OC41 API observations: operations enumerated above; sanitized
+results recorded in this report and its policy-catalog companion, not a public
+tenant endpoint or a general assurance of service readiness.
