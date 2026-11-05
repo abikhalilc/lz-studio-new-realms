@@ -16,6 +16,6 @@ function(config, n, realm_constants, topo)
   {
     compartments_configuration: compartments(ctx),
     identity_domain_groups_configuration: identity_domains.groups(ctx),
-    identity_domains_configuration: identity_domains.domains(ctx),
+    [if !ctx.identity_domain.existing then 'identity_domains_configuration']: identity_domains.domains(ctx),
     policies_configuration: tenancy_policies(ctx),
   }

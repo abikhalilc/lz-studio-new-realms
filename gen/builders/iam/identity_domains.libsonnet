@@ -30,7 +30,7 @@
     );
 
     {
-      default_identity_domain_id: 'COMMON-DOMAIN',
+      default_identity_domain_id: ctx.identity_domain.id,
       ignore_external_membership_updates: true,
       groups: {
         [n.key_tenancy('GRP', ['AUDITORS', 'ADMIN'])]: {

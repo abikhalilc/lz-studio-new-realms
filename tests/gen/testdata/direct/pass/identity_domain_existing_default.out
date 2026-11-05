@@ -1,0 +1,78 @@
+{
+  "cis1": {
+    "default_domain_id": "ocid1.domain.oc41..aaaaaaaafakefixture",
+    "group_keys": [
+      "GRP-AUDITORS-ADMIN-KEY",
+      "GRP-COST-ADMIN-KEY",
+      "GRP-IAM-ADMIN-KEY",
+      "GRP-LZ-GLOBAL-DB-ADMIN-KEY",
+      "GRP-LZ-GLOBAL-EXACS-DB-ADMIN-KEY",
+      "GRP-LZ-GLOBAL-EXACS-INFRA-ADMIN-KEY",
+      "GRP-LZ-GLOBAL-INFRA-ADMIN-KEY",
+      "GRP-LZ-NETWORK-ADMIN-KEY",
+      "GRP-LZ-PROD-EXACC-DB-ADMIN-KEY",
+      "GRP-LZ-PROD-EXACC-INFRA-ADMIN-KEY",
+      "GRP-LZ-PROD-EXACC-PROJ1-ADMIN-KEY",
+      "GRP-LZ-PROD-EXACS-PROJ1-ADMIN-KEY",
+      "GRP-LZ-PROD-PLATFORM-OCVS-ADMINS-KEY",
+      "GRP-LZ-PROD-PLATFORM-OKE-ADMINS-KEY",
+      "GRP-LZ-PROD-PLATFORM-OKE-RBAC-ADMIN-KEY",
+      "GRP-LZ-PROD-PLATFORM-OKE-RBAC-VIEWER-KEY",
+      "GRP-LZ-PROD-PROJ1-ADMIN-KEY",
+      "GRP-LZ-SECURITY-ADMIN-KEY",
+      "GRP-SECURITY-ADMIN-KEY"
+    ],
+    "ignore_external_membership_updates": true,
+    "output_files": [
+      "governance.json",
+      "iam.json",
+      "network.json",
+      "observability_cis1.json",
+      "observability_cis1_pre.json",
+      "ocvs.json",
+      "oke_clusters.json",
+      "oke_workers.json",
+      "security_cis1.json",
+      "security_cis1_pre.json"
+    ],
+    "policy_count": 35
+  },
+  "cis2": {
+    "default_domain_id": "ocid1.domain.oc41..aaaaaaaafakefixture",
+    "group_keys": [
+      "GRP-AUDITORS-ADMIN-KEY",
+      "GRP-COST-ADMIN-KEY",
+      "GRP-IAM-ADMIN-KEY",
+      "GRP-LZ-GLOBAL-DB-ADMIN-KEY",
+      "GRP-LZ-GLOBAL-EXACS-DB-ADMIN-KEY",
+      "GRP-LZ-GLOBAL-EXACS-INFRA-ADMIN-KEY",
+      "GRP-LZ-GLOBAL-INFRA-ADMIN-KEY",
+      "GRP-LZ-NETWORK-ADMIN-KEY",
+      "GRP-LZ-PROD-EXACC-DB-ADMIN-KEY",
+      "GRP-LZ-PROD-EXACC-INFRA-ADMIN-KEY",
+      "GRP-LZ-PROD-EXACC-PROJ1-ADMIN-KEY",
+      "GRP-LZ-PROD-EXACS-PROJ1-ADMIN-KEY",
+      "GRP-LZ-PROD-PLATFORM-OCVS-ADMINS-KEY",
+      "GRP-LZ-PROD-PLATFORM-OKE-ADMINS-KEY",
+      "GRP-LZ-PROD-PLATFORM-OKE-RBAC-ADMIN-KEY",
+      "GRP-LZ-PROD-PLATFORM-OKE-RBAC-VIEWER-KEY",
+      "GRP-LZ-PROD-PROJ1-ADMIN-KEY",
+      "GRP-LZ-SECURITY-ADMIN-KEY",
+      "GRP-SECURITY-ADMIN-KEY"
+    ],
+    "ignore_external_membership_updates": true,
+    "output_files": [
+      "governance.json",
+      "iam.json",
+      "network.json",
+      "observability_cis2.json",
+      "observability_cis2_pre.json",
+      "ocvs.json",
+      "oke_clusters.json",
+      "oke_workers.json",
+      "security_cis2.json",
+      "security_cis2_pre.json"
+    ],
+    "policy_count": 35
+  }
+}

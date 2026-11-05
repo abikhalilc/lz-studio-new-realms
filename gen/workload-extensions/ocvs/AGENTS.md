@@ -13,6 +13,11 @@ This file covers `gen/workload-extensions/ocvs/**` and published OCVS snapshots/
 
 ## Contract
 
+- Config-mode existing Default-domain selection arrives through
+  `scope_config.identity_domain`; OCVS groups then merge into the base
+  identity-domain group configuration and its group policies qualify `Default`.
+  Omitted selection preserves published group families and `id_lz_common`.
+
 - Extension type is `ocvs`.
 - OCVS is a networked platform extension: `platform.network.vcn` is required.
 - The first supported shape is one SDDC management cluster per platform. Use multiple OCVS platform entries for multiple SDDCs.

@@ -1,11 +1,14 @@
 local desc = import '../../descriptions.libsonnet';
+local identity_domains = import '../../lib/identity_domain.libsonnet';
 
-function(ctx) {
+function(ctx)
+  local identity = identity_domains.from_params(ctx.params);
+{
   local n = ctx.n,
   local group_name = n.display_global('grp', ctx.display_segments + ['admins']),
   local policy_name = n.display_global('pcy', ctx.display_segments + ['admins']),
 
-  groups_configuration+: {
+  [if identity.existing then 'identity_domain_groups_configuration' else 'groups_configuration']+: {
     groups+: {
       [n.key_global('GRP', [ctx.env, 'PLATFORM', ctx.plat, 'ADMINS'])]: {
         name: group_name,
@@ -25,14 +28,14 @@ function(ctx) {
         ),
         compartment_id: 'TENANCY-ROOT',
         statements: [
-          "allow group 'id_lz_common'/'%s' to manage sddcs in compartment %s" % [group_name, ctx.scope.compartment_path],
-          "allow group 'id_lz_common'/'%s' to manage instances in compartment %s" % [group_name, ctx.scope.compartment_path],
-          "allow group 'id_lz_common'/'%s' to read virtual-network-family in compartment %s" % [group_name, ctx.scope.network_compartment_path],
-          "allow group 'id_lz_common'/'%s' to use subnets in compartment %s" % [group_name, ctx.scope.network_compartment_path],
-          "allow group 'id_lz_common'/'%s' to use vnics in compartment %s" % [group_name, ctx.scope.network_compartment_path],
-          "allow group 'id_lz_common'/'%s' to use vlans in compartment %s" % [group_name, ctx.scope.network_compartment_path],
-          "allow group 'id_lz_common'/'%s' to use private-ips in compartment %s" % [group_name, ctx.scope.network_compartment_path],
-          "allow group 'id_lz_common'/'%s' to use network-security-groups in compartment %s" % [group_name, ctx.scope.network_compartment_path],
+          "allow group '%s'/'%s' to manage sddcs in compartment %s" % [identity.display_name, group_name, ctx.scope.compartment_path],
+          "allow group '%s'/'%s' to manage instances in compartment %s" % [identity.display_name, group_name, ctx.scope.compartment_path],
+          "allow group '%s'/'%s' to read virtual-network-family in compartment %s" % [identity.display_name, group_name, ctx.scope.network_compartment_path],
+          "allow group '%s'/'%s' to use subnets in compartment %s" % [identity.display_name, group_name, ctx.scope.network_compartment_path],
+          "allow group '%s'/'%s' to use vnics in compartment %s" % [identity.display_name, group_name, ctx.scope.network_compartment_path],
+          "allow group '%s'/'%s' to use vlans in compartment %s" % [identity.display_name, group_name, ctx.scope.network_compartment_path],
+          "allow group '%s'/'%s' to use private-ips in compartment %s" % [identity.display_name, group_name, ctx.scope.network_compartment_path],
+          "allow group '%s'/'%s' to use network-security-groups in compartment %s" % [identity.display_name, group_name, ctx.scope.network_compartment_path],
         ],
       },
     },

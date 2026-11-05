@@ -1,7 +1,7 @@
 OC41 Step 3: service and identity review
 Reviewed: 2026-11-05 (Asia/Dubai)
 Application baseline: 087e43b
-Status: approved review complete; implementation proposals below are unapproved.
+Status: review and separately approved 3A complete; 3B/3C remain unapproved.
 
 Scope and decision
 ------------------
@@ -147,7 +147,7 @@ implementing a capability gate. Never silently drop security controls.
 
 Approval-sized implementation sequence
 --------------------------------------
-3A (next proposal): generator support for optional existing Default domain,
+3A (approved and implemented): generator support for optional existing Default domain,
   including base/workload group-policy consistency, schema documentation and
   tests. No Studio UI enablement, OCI writes or migration.
   Acceptance: no domain is created in existing mode; every selected workload's
@@ -165,6 +165,30 @@ Approval-sized implementation sequence
 
 Then resume original Step 4 (region UI), Step 5 (realm-aware deployment links),
 and Step 6 (approved runtime validation). None are approved by this review.
+
+3A implementation record
+-------------------------
+The user separately approved 3A. Config mode now accepts the optional
+identity_domain object with mode existing_default and the existing domain's id.
+gen/lib/identity_domain.libsonnet owns boundary validation and resolved context;
+platforms pass it through scope_config.identity_domain. Existing-mode OKE/OCVS
+groups merge into the base identity-domain group family. Base, RPC and all
+supported workload group policies use the Default qualifier. Omitted/null
+retains existing creation behavior and published defaults. No source code or
+runtime dependency change was made in the external Orchestrator or modules.
+
+Validation: 108 browser-engine generator/region tests pass, including a combined
+OKE/OCVS/ExaDB-D/ExaDB-C@C/RPC design at CIS1 and CIS2, invalid metadata checks,
+omitted/null default equivalence and all 23 checked-in published IAM/identity
+snapshots. Native go-jsonnet checks pass for the combined fixture, wrong-realm
+rejection and five existing realm/workload summaries. Four fixture inventory/
+header checks, TypeScript checks, test-file ESLint and production build pass.
+Tests use synthetic domain/tenancy references only. No live resource creation,
+membership change, import/adoption, Terraform validation, plan or apply occurred.
+
+The input validator proves syntax and realm consistency, not that the supplied
+ID is actually Default or that it is active/authorized. The operator must verify
+those facts privately before deployment. UI selection is still pending 3B.
 
 Affected source areas
 ---------------------

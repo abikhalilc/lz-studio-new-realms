@@ -14,6 +14,11 @@ Scope: this file covers `gen/workload-extensions/exacc/**` and the published Exa
 
 ## Extension Contract
 
+Config-mode existing Default-domain selection arrives through
+`scope_config.identity_domain`. Shared ExaDB IAM uses that domain for policy
+qualifiers, with groups inheriting base IAM's selected domain ID. Omission
+preserves `id_lz_common` and standalone published projections.
+
 - Extension type is `exacc`.
 - ExaDB-C@C is networkless: `metadata.network_mode: 'forbidden'`.
 - ExaDB-C@C platforms must omit `platform.network`; the generic extension contract rejects a phantom network on networkless extensions.

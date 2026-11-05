@@ -12,6 +12,11 @@ Scope: this file covers `gen/workload-extensions/exacs/**` and published ExaCS s
 
 ## Contract
 
+Config-mode existing Default-domain selection arrives through
+`scope_config.identity_domain`. The shared ExaDB IAM builder uses its domain
+display name for all group policies and merges groups into base IAM's selected
+domain. Omission preserves `id_lz_common` and published projections.
+
 `notification_emails.default` is required. Optional `db_workloads` and `infra_workloads` recipients cover shared topics. Studio uses `split_environment_topics: true` with `environment_infra` and `environment_db` recipient maps to create separate environment infrastructure and DBA topics. `projects_by_environment` assigns recipients to Autonomous project topics only where project DB compartments are selected. Each map is keyed by environment name and contains non-empty recipient arrays; the `default` list remains the fallback. ExaCS network events use the One-OE Network topic.
 
 - Extension type is `exacs`.

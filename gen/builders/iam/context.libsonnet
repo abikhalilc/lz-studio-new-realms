@@ -4,6 +4,7 @@
 function(config, n, realm_constants, topo)
   local labels = import '../../labels.libsonnet';
   local desc = import '../../descriptions.libsonnet';
+  local identity_domains = import '../../lib/identity_domain.libsonnet';
   local config_input = config;
   local naming = n;
   local realm = realm_constants;
@@ -37,7 +38,8 @@ function(config, n, realm_constants, topo)
     // GRP-LZ-{ENV}-{PROJ}-ADMIN-KEY -> n.key_global('GRP', [env, proj, 'ADMIN'])
     // PCY-LZ-{ENV}-{PROJ}-ADMIN-KEY -> n.key_global('PCY', [env, proj, 'ADMIN'])
 
-    domain_display:: 'id_lz_common',
+    identity_domain:: identity_domains.from_config(config_input),
+    domain_display:: self.identity_domain.display_name,
 
     // --- Group name constants (kept in sync with naming module to prevent group/policy drift) ---
     grp_auditors:: naming.display_tenancy('GRP', ['AUDITORS', 'ADMIN']),

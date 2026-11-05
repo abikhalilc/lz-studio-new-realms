@@ -5,6 +5,7 @@ local cidrs = import 'lib/cidrs.libsonnet';
 local collections = import 'lib/collections.libsonnet';
 local subnet_utils = import 'lib/subnets.libsonnet';
 local validation = import 'lib/validation.libsonnet';
+local identity_domains = import 'lib/identity_domain.libsonnet';
 local hybrid_contract = import 'addons/oci-hybrid-connectivity/config.libsonnet';
 
 {
@@ -197,6 +198,10 @@ local hybrid_contract = import 'addons/oci-hybrid-connectivity/config.libsonnet'
       else 'oc1';
     assert std.member(supported_realms, realm) :
            'config.realm must be one of: %s' % std.join(', ', supported_realms);
+    local identity_domain = identity_domains.normalize(
+      if std.objectHas(config, 'identity_domain') then config.identity_domain else null,
+      realm
+    );
 
     local raw_cis_level =
       if std.objectHas(config, 'cis_level') && config.cis_level != null then config.cis_level
@@ -483,6 +488,7 @@ local hybrid_contract = import 'addons/oci-hybrid-connectivity/config.libsonnet'
       region: region,
       region_short_name: region_short_name,
       realm: realm,
+      [if identity_domain != null then 'identity_domain']: identity_domain,
       cis_level: cis_level,
       stack_scope: stack_scope,
       dr_region: dr_region,

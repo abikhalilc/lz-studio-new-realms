@@ -212,6 +212,10 @@ A landing zone config is a Jsonnet object passed to `landing_zone.libsonnet`:
   stack_scope: 'complete' | 'regional', // optional, defaults to complete
   dr_region: 'eu-amsterdam-1',         // optional: DR Object Storage principal in home IAM
   security_targets: ['prod'],          // optional, defaults to all environments in config mode
+  identity_domain: {                   // optional; omitted/null creates id_lz_common
+    mode: 'existing_default',          // reuses an existing Default domain
+    id: '<existing Default domain OCID>',
+  },
   hub: {
     kind: 'hub_a' | 'hub_b' | 'hub_c' | 'hub_e',
     network: {
@@ -245,6 +249,18 @@ A landing zone config is a Jsonnet object passed to `landing_zone.libsonnet`:
 Config normalization (`config.libsonnet`) treats `region` and `region_short_name` as a pair: either provide both or omit both. When both are omitted (or both are explicitly `null`), they default to `eu-frankfurt-1` and `fra`. `realm` defaults to `oc1` (including when explicitly set to `null`) and must be one of the realms in `constants.libsonnet`. `cis_level` defaults to `2` and must be `1` or `2`; config mode emits only the selected CIS security and observability file pair. `stack_scope` defaults to `complete` and accepts `complete` or `regional`; it declares resource ownership in the source config. `security_targets` is optional; if omitted, topology defaults it to all defined environments in semantic order. Repo-owned published profiles pin `security_targets` explicitly when they need behavior narrower than the config-mode default. Hub and extension subnet defaults use `auto_subnets()`. For project-network shared subnets, omission auto-generates `web`, `app`, `db`, and `infra`; an explicit empty map emits none; a non-empty map is authoritative.
 
 Plain platforms still require `platform.network`. Extension-backed platforms follow the registered extension's `metadata.network_mode`: `required` means `platform.network` must exist, `forbidden` means it must be omitted, and `optional` means the same extension can emit network when `platform.network` exists or non-network domains when it is absent.
+
+`identity_domain` is an optional config-mode choice. The only explicit mode is
+`existing_default`, requiring an `ocid1.domain` OCID in `config.realm`; it emits
+no new domain definition, uses that ID for domain groups, and qualifies group
+policies with `Default`. Omitted/null retains the published `id_lz_common`
+behavior. Syntax/realm checks cannot prove the OCID is actually the Default
+domain; the operator must verify its identity and permissions before deployment.
+`lib/identity_domain.libsonnet` owns normalization and resolved identity context.
+Platform entries carry that resolved context in `scope_config.identity_domain`.
+OKE/OCVS existing-mode groups use the identity-domain group path alongside base
+and ExaDB groups; omitted-mode publication shapes remain unchanged. Do not apply
+post-render string replacement or alter published adapters to implement this.
 
 When debugging how generated JSON is applied at deploy time, inspect the downstream deployer contract in `terraform-oci-modules-orchestrator` in addition to this repo. `gen/` defines what this repository emits; the orchestrator defines how those generated configs are consumed. For published OKE investigations, use the exact orchestrator tag referenced by the published OKE docs rather than `HEAD`.
 

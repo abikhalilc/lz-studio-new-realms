@@ -23,7 +23,7 @@
       !is_shared_scope && (components.infrastructure || components.database);
     local has_environment_db_group = !is_shared_scope && components.database;
     local product_upper = std.asciiUpper(product.code);
-    local domain_display = 'id_lz_common';
+    local domain_display = inputs.identity_domain.display_name;
     local domain_grp(grp_name) = "'%s'/'%s'" % [domain_display, grp_name];
     local tag_allow(grp_name, verb, resource, tag_value) =
       "allow group %s to %s %s in compartment cmp-landingzone where sets-intersect(target.resource.compartment.tag.%s, ('%s'))" % [

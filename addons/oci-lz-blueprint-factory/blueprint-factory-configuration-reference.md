@@ -129,6 +129,7 @@ This small shape creates the shared landing-zone domains plus the `dev` environm
 | `region_short_name` | string | No* | `fra` | Short region label used by resource naming. |
 | `dr_region` | string | No | Omitted | DR region whose Object Storage service must be authorized by complete home IAM. Must differ from `region`. |
 | `realm` | string | No | `oc1` | OCI realm. Supported values are `oc1`, `oc19`, and `oc41` (generator support with the limitations below). |
+| `identity_domain` | object | No | Create `id_lz_common` | Optional reuse of the existing Default domain; see below. |
 | `cis_level` | number or string | No | `2` | CIS level to emit: `1` or `2`. |
 | `stack_scope` | `complete` or `regional` | No | `complete` | Declares which resource domains this source config owns. |
 | `security_targets` | array of strings | No | All environments | Environment names that receive Security Zone targeting. |
@@ -142,6 +143,26 @@ usage-report access until an OC41 reporting-tenancy OCID is verified; local
 usage-report and budget permissions remain. OC41 is not yet offered in Studio.
 Generator acceptance does not establish provider, identity-domain, DR or
 provisioning compatibility. See the [verified OC41 profile](../oci-landingzone-studio/OC41-VERIFIED-PROFILE.txt).
+
+### Existing Default identity domain
+
+Set `identity_domain` to `{ mode: 'existing_default', id: '<existing Default domain OCID>' }`
+to create the requested landing-zone and workload groups in an existing Default
+domain. The only accepted keys are `mode` and `id`. The ID must identify a domain
+in the selected realm. Verify privately that it is the active **Default** domain
+and that the deployment account has the required permissions; syntax and realm
+validation do not verify the live domain's display name or state.
+
+This choice emits no new identity-domain or replication definition. Base IAM,
+RPC requester policies, OKE, OCVS, ExaDB-D and ExaDB-C@C policies use the Default
+domain consistently. Existing-mode OKE/OCVS groups use the identity-domain group
+configuration family alongside base and Exadata groups. External group-membership
+updates remain ignored as before. It does not adopt existing groups or migrate
+resources from a previous stack. Check for conflicting group names before
+deployment. Additional custom existing domains are not supported by this option.
+
+Omission or `null` preserves current `id_lz_common` creation and published output
+defaults. The Studio UI input for this choice is a separately approved step.
 
 `security_targets` can contain only names defined under `environments`. Omit it to apply the default targeting to every configured environment.
 

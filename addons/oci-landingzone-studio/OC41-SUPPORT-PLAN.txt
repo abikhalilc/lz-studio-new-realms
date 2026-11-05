@@ -1,7 +1,7 @@
 Du Alloy OC41 support: comparison and approval plan
 Recorded: 2026-11-05
 Status: Steps 1 and 2 complete; Step 2 generator changes tested.
-Step 3 review complete; its implementation proposals require separate approval.
+Step 3 review and approved implementation 3A complete; 3B/3C require approval.
 Later steps remain unapproved. Studio still exposes only OC1 and OC19.
 
 Scope
@@ -91,7 +91,14 @@ Step 2: Add generator realm support and verified realm constants.
 Step 3: Handle differences in service availability and IAM, where needed.
   Approved scope: review OC41 service/identity differences and define required
   adjustments. See OC41-STEP3-REVIEW.txt. This approval does not authorize the
-  implementation proposals 3A, 3B or 3C; approve them separately.
+  implementation proposals by itself. 3A was separately approved and implemented;
+  3B and 3C remain unapproved.
+  3A result: optional identity_domain existing_default mode validates a supplied
+  domain OCID, emits no domain creation/replication definition, and consistently
+  binds base, RPC, OKE, OCVS, ExaDB-D and ExaDB-C@C groups/policies to Default.
+  All 108 browser tests pass, including all 23 published identity snapshots.
+  CLI workload/realm regressions, fixture checks, type checks, lint and build
+  pass. No private domain OCID, live migration or OCI write was introduced.
   Result: existing Default-domain support is feasible through the pinned
   contract but requires consistent base/workload identity references. Existing
   Cloud Guard target handling needs explicit handover guidance. No blanket

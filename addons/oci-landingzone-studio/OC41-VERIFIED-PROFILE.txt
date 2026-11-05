@@ -131,8 +131,8 @@ Remaining dependencies and decisions
    approved this temporary omission for Step 2 on 2026-11-05.
 2. Identity-domain mode: existing Default domain is verified. Creating an
    additional domain, its license type, quota and API permissions are untested.
-   Decide whether Studio should retain its current new-domain model or add a
-   separately scoped existing-domain option.
+   Approved Step 3A adds optional existing Default-domain support to config-mode
+   generation, preserving omitted/null defaults. Studio input is pending 3B.
 3. Provisioning matrix: service catalog entries and enabled Cloud Guard are
    verified. Exact supported features, quotas/capacity, scanning targets, Vault
    key operations, service connectors, firewalls, workload images and OKE

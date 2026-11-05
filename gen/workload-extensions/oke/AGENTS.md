@@ -24,6 +24,13 @@ For published OKE deployment investigations, inspect the exact orchestrator tag 
 
 ## Current Repo Contract
 
+- Config-mode `identity_domain: { mode: 'existing_default', id: '<domain OCID>' }`
+  routes OKE groups to the base IAM identity-domain group configuration and uses
+  `Default` in all group policies, including certificate and KMS grants. The
+  normalized choice arrives via `scope_config.identity_domain`. Omitted mode
+  preserves published group families and `id_lz_common` qualifiers. This does
+  not adopt existing groups or grant membership automatically.
+
 - `oke_simple` supports two network shapes through `config_params.cni_type`: `native` and `overlay`.
 - `cni_type` defaults to `native`.
 - `config_params.cni` is the downstream OKE cluster CNI request. It defaults from `cni_type`: `vcn_native` for native and `flannel` for overlay.

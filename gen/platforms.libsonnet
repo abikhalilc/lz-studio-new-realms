@@ -1,4 +1,5 @@
 local common = import 'hub/hub_common.libsonnet';
+local identity_domains = import 'lib/identity_domain.libsonnet';
 
 {
   has_network(pe):: std.objectHas(pe.platform_config, 'network') && pe.platform_config.network != null,
@@ -49,6 +50,7 @@ local common = import 'hub/hub_common.libsonnet';
             {
               scope: topo.env_platform(entry, p_name),
               scope_config: {
+                identity_domain: identity_domains.from_config(config),
                 projects: topo.project_names(entry),
                 environment_entries: environment_entries,
                 environment_entries_by_env_name: environment_entries_by_env_name,
@@ -69,6 +71,7 @@ local common = import 'hub/hub_common.libsonnet';
           {
             scope: topo.shared_platform(p_name),
             scope_config: {
+              identity_domain: identity_domains.from_config(config),
               projects: [],
               environment_entries: environment_entries,
               environment_entries_by_env_name: environment_entries_by_env_name,

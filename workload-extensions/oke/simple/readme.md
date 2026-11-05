@@ -5,6 +5,12 @@
 &nbsp; 
 
 ## **1. Introduction**
+Blueprint Factory config mode can reuse the existing **Default** identity domain
+for OKE and landing-zone groups. Set the optional `identity_domain` choice as
+described in the [configuration reference](../../../addons/oci-lz-blueprint-factory/blueprint-factory-configuration-reference.md#existing-default-identity-domain).
+Verify the domain OCID, permissions and group-name conflicts before deployment.
+This does not migrate existing groups or change published-template defaults.
+
 Welcome to the **OKE Landing Zone Extension**.
 
 The OKE Landing Zone Extension is a secure cloud environment, designed with the best practices to simplify the on-boarding of OKE workloads and enable the continuous operations of their cloud resources. This reference architecture provides an automated landing zone configuration.

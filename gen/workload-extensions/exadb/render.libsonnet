@@ -2,6 +2,7 @@ local exadb_iam = import './iam.libsonnet';
 local exadb_observability = import './observability.libsonnet';
 local exadb_project_db = import './project_db.libsonnet';
 local notification_emails = import '../../lib/notification_emails.libsonnet';
+local identity_domains = import '../../lib/identity_domain.libsonnet';
 
 {
   local supported_notification_keys = ['default', 'db_workloads', 'infra_workloads', 'projects', 'projects_by_environment', 'environment_infra', 'environment_db', 'split_environment_topics'],
@@ -47,6 +48,7 @@ local notification_emails = import '../../lib/notification_emails.libsonnet';
     local platform_db_key = exadb_project_db.platform_db_key(product, n, scope);
     local platform_db_name = exadb_project_db.platform_db_name(product, scope);
     local iam = exadb_iam.render({
+      identity_domain: identity_domains.from_params(params),
       product: product,
       naming: n,
       descriptions: descriptions,
