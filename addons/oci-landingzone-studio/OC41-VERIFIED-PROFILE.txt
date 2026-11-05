@@ -241,3 +241,16 @@ provider compatibility or provisioning. UI/ZIP guidance records these limits
 and a manual archive-upload fallback. No sign-in, stack creation or Terraform
 execution occurred. Step 6 remains pending separate approval; earlier deployment
 limitations still apply. See OC41-SUPPORT-PLAN.txt for implementation checks.
+
+
+Step 6 local release validation
+--------------------------------
+All remaining steps were approved; the user subsequently chose to finish with
+authenticated console validation pending. OC41-VALIDATION.txt records the exact
+evidence and limitations. Orchestrator v2.2.0 initializes and validates with OCI
+provider 9.12.1 on Terraform 1.5.7. A separate read-only provider fixture with
+process-local OC41 metadata successfully lists both verified regions. This is
+not a plan/apply of a landing zone or certification of Resource Manager's runtime.
+The Studio browser ZIP was downloaded and inspected, and CIS1/CIS2 hub output
+checks found and corrected commercial-realm Hub C examples. CLI metadata setup
+is now included in Review/ZIP instructions. No customer resources were changed.

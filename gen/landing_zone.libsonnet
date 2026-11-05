@@ -83,6 +83,8 @@ function(raw_config)
   local hub = hub_builders[config.hub.kind]({
     naming: n,
     hub_config: config.hub,
+    realm: config.realm,
+    region: config.region,
     vcn_list: [
       { name: entry.name, cidr: entry.vcn }
       for entry in all_vcn_entries

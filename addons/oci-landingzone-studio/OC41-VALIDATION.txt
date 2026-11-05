@@ -1,0 +1,108 @@
+OC41 Studio validation record
+Date: 2026-11-05 (Asia/Dubai)
+Baseline: b408f6a plus the Step 6 changes recorded with this file.
+Disposition: locally validated for generation/export; live provisioning is not certified.
+
+Authorization and boundary
+---------------------------
+The user approved all remaining steps, then explicitly chose to finish with
+authenticated console validation pending. Validation used synthetic Studio
+metadata and the existing DU profile for one read-only provider query. No
+landing-zone plan or apply, stack creation, resource import/adoption, group or
+policy write, deletion, or credential-file change occurred. Conditional redesigns
+and migration of an existing Core landing zone are outside this release.
+
+Automated checks
+------------------
+All 1,034 tests across 80 Studio test files pass after the final changes.
+Full ESLint, TypeScript checks and production build pass. Four native hub/routing/
+placeholder fixtures match their expected results; both published Hub C network
+snapshots match their committed JSON. The production build retains the existing
+large-chunk advisory; it completes successfully.
+
+Generation and ZIP evidence
+----------------------------
+- All eight PCZ Home combinations of CIS1/CIS2 and hubs A/B/C/E generate and
+  bundle successfully with the existing Default-domain mode and an ABR DR grant.
+  These are source/output checks, not service availability or provisioning tests.
+- ZIP checks verify byte-preserved artifacts, expected files, phase-specific
+  top-level family uniqueness, exactly one network file per phase, no domain
+  creation, retained local usage/budget grants and no OC1/OC19 IDs in OC41 JSON.
+- The broader suite covers both OC41 regions at CIS1/CIS2 and regional ABR output
+  without Home IAM, governance or Cloud Guard. Existing identity/workload,
+  import/export, storage, linked DR, RPC and FastConnect tests remain included.
+- A synthetic OC41 PCZ/CIS2/Hub A design was generated through the actual browser
+  Download files action on an isolated localhost preview. The downloaded ZIP
+  contains config.jsonnet, README.txt and seven valid JSON deployment files.
+  Inspection verified Default-domain reuse, Du links, explicit CLI metadata and
+  absence of commercial-realm IDs. Browser SHA256:
+  29c43279d482265a962bd57aaddee7d36c22b1addd66c19f0427a39efe50e482
+- No customer design on the main localhost origin was edited. Temporary preview
+  tabs and server were closed afterward.
+
+Fixes found during validation
+------------------------------
+Hub C backend placeholder examples were hardcoded to commercial Frankfurt.
+Config-mode hub context now passes realm and region to the canonical builder;
+its examples follow that selection. The examples remain deliberately unusable
+until replaced with the real firewall private-IP OCIDs. Publication adapters
+retain their previous default context: both committed Hub C network snapshots
+are unchanged. No committed generated JSON was hand-edited. Previously saved/downloaded bundles
+are snapshots: regenerate Hub C exports to obtain the updated placeholder examples.
+Previously exported files are not rewritten automatically.
+
+CLI instructions now supply OCI_REGION_METADATA with the verified official PCZ
+or ABR key and dutechcloud.ae. A customized resource naming key does not alter
+that SDK metadata. This process-local setting does not configure Resource
+Manager's execution environment. No machine-wide region or credential config
+was modified.
+
+Terraform source/schema validation
+-----------------------------------
+Unmodified Orchestrator v2.2.0 rms-facade was initialized in a temporary checkout
+with backend initialization disabled. Its pinned module graph (44 entries,
+including root/local modules) downloaded successfully. terraform validate passed.
+Runtime: Terraform 1.5.7, darwin_arm64.
+Resolved providers: oracle/oci 9.12.1; integrations/github 5.45.0;
+hashicorp/http 3.6.3; hashicorp/local 2.9.1; hashicorp/null 3.3.2;
+hashicorp/time 0.14.2.
+
+These are observed validation versions, not a new provider lock shipped to users.
+The external Orchestrator's OCI provider constraint remains unchanged. Validate
+again if Resource Manager or a CLI deployment selects different versions.
+Terraform validate checks the module/provider schema; it does not evaluate a
+customer landing-zone deployment, endpoint reachability or resource permissions.
+
+Read-only provider endpoint evidence
+-------------------------------------
+A separate temporary fixture pinned OCI provider 9.12.1 and used config profile
+DU with region me-dubai-3. It contained only data.oci_identity_regions.catalog
+and an output filtering the two verified OC41 region names; no resource blocks.
+With process-local OCI_REGION_METADATA for OC41 / dutechcloud.ae / PCZ /
+me-dubai-3, terraform plan -refresh=false -input=false succeeded. The data source
+read completed and returned me-dubai-2 and me-dubai-3. No plan file was saved and
+no apply ran. This proves authentication and endpoint resolution for this one
+Identity read, not full landing-zone planning or provisioning in either region.
+No private account IDs, fingerprint, key path or signing material are recorded.
+
+Console handover and outstanding runtime checks
+------------------------------------------------
+The Du deployment deep link reached the branded tenancy sign-in page. No sign-in
+or stack submission occurred. The user explicitly requested that authenticated
+console validation remain pending. HTTP 200 and a sign-in redirect do not prove
+ZIP-prefill behavior, rms-facade working-directory selection, provider metadata
+availability in Resource Manager, private-bucket reads or successful planning.
+
+Remaining: authenticated console ZIP/source verification; runtime metadata in
+Resource Manager; a customer-reviewed Home/DR resource plan with defined
+compartments, costs, ownership and cleanup; controlled apply and service checks.
+Existing Cloud Guard target recipes/coverage, group-name conflicts, service
+quotas/capacity and OC41 cross-tenancy usage-report access remain deployment
+prerequisites/limitations. ABR catalog presence does not establish service parity.
+Do not present this local release as a completed or CIS-certified deployment.
+
+Sources
+---------
+OC41-VERIFIED-PROFILE.txt; OC41-STEP3-REVIEW.txt; OC41-SUPPORT-PLAN.txt.
+https://docs.oracle.com/en-us/iaas/Content/API/Concepts/sdk_adding_new_region_endpoints.htm
+https://github.com/oci-landing-zones/terraform-oci-modules-orchestrator/tree/v2.2.0

@@ -219,3 +219,16 @@ describe('realm-aware deployment console links', () => {
     expect(deploymentReadme(config, expectedDeploymentFiles(config))).not.toContain('/resourcemanager/stacks');
   });
 });
+
+
+it.each([
+  ['me-dubai-3', 'PCZ'], ['me-dubai-2', 'ABR'],
+])('uses official OC41 metadata for %s independently of customized naming keys', (region, regionKey) => {
+  const config = buildConfig(emptyLzModel());
+  Object.assign(config, { realm: 'oc41', region, region_short_name: 'cus' });
+  const guide = deploymentReadme(config, expectedDeploymentFiles(config));
+  expect(guide).toContain(JSON.stringify({ realmKey: 'OC41', realmDomainComponent: 'dutechcloud.ae', regionKey, regionIdentifier: region }));
+  expect(guide).toContain('OCI_REGION_METADATA');
+  config.realm = 'oc1';
+  expect(deploymentReadme(config, expectedDeploymentFiles(config))).not.toContain('OCI_REGION_METADATA');
+});

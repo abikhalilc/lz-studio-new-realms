@@ -1,5 +1,6 @@
 import { CONFIG_FILENAME, deploymentStages } from '../generator/outputNames';
 import type { LzConfig } from './lzConfig';
+import { findRegion } from './regions';
 
 export const ORCHESTRATOR_VERSION = 'v2.2.0';
 export const ORCHESTRATOR_URL = 'https://github.com/oci-landing-zones/terraform-oci-modules-orchestrator';
@@ -133,10 +134,12 @@ export function deploymentHandover(config: LzConfig): string[] {
 export function deploymentCliSteps(config: LzConfig): string[] {
   const dependencies = dependencyFiles(config);
   const outputs = outputFiles(config);
+  const oc41Region = config.realm === 'oc41' ? findRegion('oc41', config.region) : null;
   const dependencyNames = dependencies.map((file) => '`' + file + '`').join(' and ');
   const outputNames = outputs.map((file) => '`' + file + '`').join(' and ');
   return [
     'Complete the applicable prerequisites above before starting. After both phases, complete the deployed-settings verification and external setup where listed.',
+    ...(oc41Region ? [`Before starting Terraform, set the process environment variable \`OCI_REGION_METADATA\` to \`${JSON.stringify({ realmKey: 'OC41', realmDomainComponent: 'dutechcloud.ae', regionKey: oc41Region.shortName.toUpperCase(), regionIdentifier: oc41Region.id })}\`. Use the official region key even if you customized the resource naming key. This registers the OC41 endpoint domain for the local provider; it does not configure Resource Manager's runtime.`] : []),
     `Download and extract Orchestrator ${ORCHESTRATOR_VERSION}. Use \`rms-facade\` as the working directory, with your approved OCI authentication and Terraform state. Keep the generated JSON files locally instead of uploading them to a bucket.`,
     'In a private `deployment.tfvars` file, set `configuration_source = "file"`, `tenancy_ocid` and `region`. Set `local_config_file_paths` to absolute paths for the phase 1 files listed above.',
     ...(dependencies.length ? [`Set \`local_dependency_file_paths\` to the absolute paths of ${dependencyNames} from the completed ${config.stack_scope === 'regional' ? 'Home' : 'RPC acceptor'} deployment.`] : []),

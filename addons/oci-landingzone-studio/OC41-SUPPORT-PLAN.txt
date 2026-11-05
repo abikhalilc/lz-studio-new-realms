@@ -2,7 +2,9 @@ Du Alloy OC41 support: comparison and approval plan
 Recorded: 2026-11-05
 Status: Steps 1 and 2 complete; Step 2 generator changes tested.
 Step 3 review and approved implementations 3A/3B/3C complete.
-Steps 4 and 5 approved and implemented; Step 6 remains unapproved.
+Steps 4 and 5 implemented; Step 6 local validation complete.
+The user approved remaining work and chose to leave authenticated console
+validation pending. Live landing-zone provisioning is not certified.
 Studio now exposes OC1, OC19 and OC41 with the verified PCZ/ABR catalog.
 
 Scope
@@ -14,9 +16,9 @@ Push work only to abikhalilc/lz-studio-new-realms, never to upstream.
 
 Approval workflow
 -----------------
-The user approves each step separately. Present the precise scope and acceptance
-criteria before starting it. After implementation, report the diff and validation
-and wait for approval before starting the next step. Saving this plan does not
+The user initially approved each step separately, then approved all remaining
+steps. Report the diff and validation results. The user subsequently selected
+finish with authenticated console validation pending; retain that boundary. Saving this plan does not
 authorize any application changes. Each approved step should have its own commit.
 
 Evidence reviewed
@@ -182,7 +184,21 @@ Step 5 (approved, console handover implemented): Make deployment handover realm-
   Acceptance: OC41 links and exported instructions match the approved deployment
   contract; OC1/OC19 links and workflows remain valid.
 
-Step 6: Validate and release the approved OC41 scope.
+Step 6 (approved; local validation complete): Validate the OC41 scope.
+  Detailed evidence, versions and pending runtime gates: OC41-VALIDATION.txt.
+  Eight PCZ CIS1/CIS2 hub A/B/C/E ZIP checks found and fixed commercial-realm
+  Hub C backend examples. Published Hub C snapshots remain unchanged. Browser
+  download and archive inspection pass. Native routing/placeholder regressions
+  and all 1,034 tests across 80 Studio files, lint, type checks and production
+  build pass.
+  Unmodified Orchestrator v2.2.0 initializes and validates with OCI provider
+  9.12.1 on Terraform 1.5.7. A separate read-only provider query with explicit
+  OC41 metadata successfully lists PCZ/ABR using the existing DU profile.
+  CLI handover now includes official region metadata independently of custom
+  naming keys. No landing-zone plan/apply or resource write was performed.
+  The user explicitly left authenticated console ZIP validation pending.
+  Resource Manager provider/runtime compatibility and live provisioning remain
+  unverified; local/source release evidence is not deployment certification.
   Run targeted tests, type checks, lint and production build; verify browser
   generation and export. Review representative CIS1/CIS2 and hub combinations
   only where the OC41 profile supports them.

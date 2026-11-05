@@ -7,6 +7,7 @@
 // hub_ctx.naming: naming object from naming('fra')
 // hub_ctx.hub_config: { kind: 'hub_c', network: { vcn: '...', subnets: { untrust, trust, lb, mgmt, mon, dns } } }
 // hub_ctx.lb_backends: { backend1_ip: '10.0.64.10', backend2_ip: '10.0.64.20' } — example LB backend IPs
+// hub_ctx.realm / hub_ctx.region: optional example-OCID location; publication defaults remain oc1 / eu-frankfurt-1
 // hub_ctx.lb_env_name: first ordered workload spoke name used for example LB naming
 local common = import 'hub_common.libsonnet';
 local lb = import 'hub_lb.libsonnet';
@@ -61,6 +62,8 @@ local nlb(n, zone, backends={}) = {
 function(hub_ctx)
   local n = hub_ctx.naming;
   local hub_config = hub_ctx.hub_config;
+  local realm = if std.objectHas(hub_ctx, 'realm') then hub_ctx.realm else 'oc1';
+  local region = if std.objectHas(hub_ctx, 'region') then hub_ctx.region else 'eu-frankfurt-1';
   local create_l7_load_balancer =
     if std.objectHas(hub_ctx, 'create_l7_load_balancer') then hub_ctx.create_l7_load_balancer
     else true;
@@ -347,12 +350,12 @@ function(hub_ctx)
       nlb:: nlb,
       placeholder_targets:: {
         trust: [
-          'NETWORK FIREWALL-1 PRIVATE IP OCID IN TRUST SUBNET, e.g. ocid1.privateip.oc1.eu-frankfurt-1.abtheljrr...',
-          'NETWORK FIREWALL-2 PRIVATE IP OCID IN TRUST SUBNET, e.g. ocid1.privateip.oc1.eu-frankfurt-1.abtheljrt...',
+          'NETWORK FIREWALL-1 PRIVATE IP OCID IN TRUST SUBNET, e.g. ocid1.privateip.' + realm + '.' + region + '.abtheljrr...',
+          'NETWORK FIREWALL-2 PRIVATE IP OCID IN TRUST SUBNET, e.g. ocid1.privateip.' + realm + '.' + region + '.abtheljrt...',
         ],
         untrust: [
-          'NETWORK FIREWALL-1 PRIVATE IP OCID IN UNTRUST SUBNET, e.g. ocid1.privateip.oc1.eu-frankfurt-1.abtheljsm...',
-          'NETWORK FIREWALL-2 PRIVATE IP OCID IN UNTRUST SUBNET, e.g. ocid1.privateip.oc1.eu-frankfurt-1.abtheljsh...',
+          'NETWORK FIREWALL-1 PRIVATE IP OCID IN UNTRUST SUBNET, e.g. ocid1.privateip.' + realm + '.' + region + '.abtheljsm...',
+          'NETWORK FIREWALL-2 PRIVATE IP OCID IN UNTRUST SUBNET, e.g. ocid1.privateip.' + realm + '.' + region + '.abtheljsh...',
         ],
       },
 
