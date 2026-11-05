@@ -164,3 +164,39 @@ it.each(['oc1', 'oc19', 'oc41'] as const)('shows shared deployment guidance for 
     expect(html.includes('inspect any existing tenancy-root target')).toBe(scope === 'complete');
   }
 });
+
+
+it.each([
+  ['oc1', 'eu-frankfurt-1', 'https://cloud.oracle.com'],
+  ['oc19', 'eu-frankfurt-2', 'https://cloud.oracle.eu'],
+  ['oc41', 'me-dubai-3', 'https://cloud.dutechcloud.ae'],
+  ['oc41', 'me-dubai-2', 'https://cloud.dutechcloud.ae'],
+])('renders %s %s links using the selected console and region', (realm, region, origin) => {
+  for (const scope of ['complete', 'regional'] as const) {
+    const model = emptyLzModel();
+    Object.assign(model.foundation, { realm, region, stackScope: scope });
+    const html = renderToStaticMarkup(<MemoryRouter><WizardProvider initialModel={model}>
+      <ReviewStep designName="Console test" />
+    </WizardProvider></MemoryRouter>);
+    const createHref = html.match(/<a[^>]+href="([^"]+)"[^>]*>Deploy to OCI(?: ↗)?<\/a>/)![1].replaceAll('&amp;', '&');
+    const stacksHref = html.match(/<a[^>]+href="([^"]+)"[^>]*><span>Open Resource Manager stacks<\/span>/)![1].replaceAll('&amp;', '&');
+    const create = new URL(createHref);
+    expect(create.origin).toBe(origin);
+    expect(create.searchParams.get('region')).toBe(region);
+    expect(new URL(stacksHref).origin).toBe(origin);
+    expect(new URL(stacksHref).searchParams.get('region')).toBe(region);
+    expect(JSON.parse(create.searchParams.get('zipUrlVariables')!)).toEqual({ configuration_source: 'ocibucket' });
+    expect(html.includes('OC41 console ZIP prefill and Terraform provider compatibility still require deployment validation')).toBe(realm === 'oc41');
+  }
+});
+
+it('omits console links for an unsupported saved realm', () => {
+  const model = emptyLzModel();
+  model.foundation.realm = 'oc99';
+  const html = renderToStaticMarkup(<MemoryRouter><WizardProvider initialModel={model}>
+    <ReviewStep designName="Unsupported realm" />
+  </WizardProvider></MemoryRouter>);
+  expect(html).toContain('Choose a supported realm in Foundation');
+  expect(html).not.toContain('>Deploy to OCI');
+  expect(html).not.toContain('Open Resource Manager stacks');
+});

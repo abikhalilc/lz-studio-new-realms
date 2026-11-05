@@ -225,3 +225,19 @@ PCZ is the initial UI choice, not a claim about every tenancy's Home Region.
 No FastConnect provider-service IDs were added. The original evidence limits
 above still apply; Step 5 console links and Step 6 runtime validation remain
 pending separate approval. See OC41-SUPPORT-PLAN.txt for validation results.
+
+
+Step 5 deployment console handover
+----------------------------------
+Separately approved on 2026-11-05: Review and ZIP README console links now use
+cloud.dutechcloud.ae for OC41, including the selected region and the existing
+Orchestrator v2.2.0 archive/private-source defaults. OC19 now uses Oracle's
+documented cloud.oracle.eu base; OC1 retains cloud.oracle.com. Unknown realms
+receive no console link. Customer identifiers do not enter generated URLs.
+
+The Du Create Stack address returned HTTP 200 to an unauthenticated HEAD request.
+This does not validate authenticated routing, ZIP-prefill behavior, Terraform
+provider compatibility or provisioning. UI/ZIP guidance records these limits
+and a manual archive-upload fallback. No sign-in, stack creation or Terraform
+execution occurred. Step 6 remains pending separate approval; earlier deployment
+limitations still apply. See OC41-SUPPORT-PLAN.txt for implementation checks.

@@ -32,10 +32,10 @@ import { validateRegionalDeployment } from '../../services/regionalDeployment';
 import { regionShortNameError } from '../../services/regions';
 import { identityDomainError, identityDomainLabel } from '../../services/identityDomain';
 import {
-  APPLY_STEP, DEPLOY_TO_OCI_URL, EXISTING_DEPLOYMENT_STEP, HUB_C_BACKEND_STEPS, ORCHESTRATOR_VERSION, UPDATE_STEP,
+  APPLY_STEP, deploymentConsoleLinks, EXISTING_DEPLOYMENT_STEP, HUB_C_BACKEND_STEPS, ORCHESTRATOR_VERSION, UPDATE_STEP,
   ORCHESTRATOR_URL as LANDING_ZONE_ORCHESTRATOR_URL,
   ORCHESTRATOR_RELEASE_URL as LANDING_ZONE_ORCHESTRATOR_RELEASE_URL,
-  PRIVATE_SOURCE_STEP, RESOURCE_MANAGER_STACKS_URL, completionNetwork,
+  PRIVATE_SOURCE_STEP, completionNetwork,
   deploymentCliSteps, deploymentVerification, deploymentHandover, deploymentOutputs, deploymentPrerequisites, deploymentReadme, deploymentSettings, expectedDeploymentFiles,
 } from '../../services/deployment';
 import { ErrorNotice } from '../../components/FieldError';
@@ -122,6 +122,7 @@ export default function ReviewStep({ designName, getDiagram, diagramReady = true
     ])];
   }, [model, regional]);
   const hasSecrets = containsInlineSecrets(model.hybridConnectivity);
+  const consoleLinks = deploymentConsoleLinks(deploymentConfig);
   const prerequisites = deploymentPrerequisites(deploymentConfig);
   const handover = deploymentHandover(deploymentConfig);
   const verification = deploymentVerification(deploymentConfig);
@@ -272,7 +273,7 @@ export default function ReviewStep({ designName, getDiagram, diagramReady = true
           <div style={local.guide}>
             <h3 style={local.guideTitle}>2. Create and apply phase 1</h3>
             <ul style={local.ordered}>
-              <li>Open <a className="guide-link" href={DEPLOY_TO_OCI_URL} target="_blank" rel="noreferrer">Deploy to OCI ↗</a> for a prefilled <strong>Create Stack</strong> wizard using the Landing Zone Orchestrator and private Object Storage configuration source. Select <code className="required-setting">rms-facade</code> as the working directory.</li>
+              <li>{consoleLinks ? <>Open <a className="guide-link" href={consoleLinks.createStackUrl} target="_blank" rel="noreferrer">Deploy to OCI ↗</a> to create a stack using the Landing Zone Orchestrator. Confirm the source and private Object Storage settings. Select <code className="required-setting">rms-facade</code> as the working directory.</> : <>Choose a supported realm in Foundation before opening Resource Manager.</>}</li>
               <li>In the stack variables, confirm <Setting name="configuration_source" value="ocibucket" />. Enter your bucket name in <Setting name="oci_configuration_bucket" /> and set <Setting name="oci_configuration_objects" /> to exactly these phase 1 files:
                 <div style={local.fileList}>{firstStage.files.map((file) => <code key={file} className="required-setting">{file}</code>)}</div>
               </li>
@@ -312,7 +313,7 @@ export default function ReviewStep({ designName, getDiagram, diagramReady = true
           </details>
           <div className="deployment-links-heading">OCI Resource Manager resources</div>
           <div className="deployment-links" style={local.links} aria-label="OCI Resource Manager resources">
-            <a href={RESOURCE_MANAGER_STACKS_URL} target="_blank" rel="noreferrer"><span>Open Resource Manager stacks</span><span aria-hidden="true">↗</span></a>
+            {consoleLinks && <a href={consoleLinks.stacksUrl} target="_blank" rel="noreferrer"><span>Open Resource Manager stacks</span><span aria-hidden="true">↗</span></a>}
             <a href={RESOURCE_MANAGER_CREATE_STACK_GUIDE_URL} target="_blank" rel="noreferrer"><span>Read: create a stack</span><span aria-hidden="true">↗</span></a>
             <a href={RESOURCE_MANAGER_PLAN_GUIDE_URL} target="_blank" rel="noreferrer"><span>Read: plan a deployment</span><span aria-hidden="true">↗</span></a>
             <a href={RESOURCE_MANAGER_APPLY_GUIDE_URL} target="_blank" rel="noreferrer"><span>Read: apply a deployment</span><span aria-hidden="true">↗</span></a>

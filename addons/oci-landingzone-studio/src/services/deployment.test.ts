@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DEPLOY_TO_OCI_URL, ORCHESTRATOR_RELEASE_URL, deploymentReadme, deploymentVerification, deploymentPrerequisites, deploymentSettings, deploymentCliSteps, expectedDeploymentFiles } from './deployment';
+import { deploymentConsoleLinks, OC41_CONSOLE_STEP, ORCHESTRATOR_RELEASE_URL, deploymentReadme, deploymentVerification, deploymentPrerequisites, deploymentSettings, deploymentCliSteps, expectedDeploymentFiles } from './deployment';
 import { emptyLzModel } from '../model/defaults';
 import { buildConfig } from './lzConfig';
 import { newPlatform } from './platforms';
@@ -49,7 +49,7 @@ describe('default deployment settings', () => {
   });
 
   it('retains the pinned Orchestrator and private Object Storage default', () => {
-    const url = new URL(DEPLOY_TO_OCI_URL);
+    const url = new URL(deploymentConsoleLinks(buildConfig(emptyLzModel()))!.createStackUrl);
     expect(`${url.origin}${url.pathname}`).toBe('https://cloud.oracle.com/resourcemanager/stacks/create');
     expect(url.searchParams.get('zipUrl')).toBe('https://github.com/oci-landing-zones/terraform-oci-modules-orchestrator/archive/refs/tags/v2.2.0.zip');
     expect(JSON.parse(url.searchParams.get('zipUrlVariables')!)).toEqual({ configuration_source: 'ocibucket' });
@@ -177,5 +177,45 @@ describe('existing Cloud Guard and OC41 reporting guidance', () => {
         expect(dr).not.toContain('Local usage-report and budget permissions remain');
       }
     }
+  });
+});
+
+
+describe('realm-aware deployment console links', () => {
+  it.each([
+    ['oc1', 'eu-frankfurt-1', 'https://cloud.oracle.com'],
+    ['oc19', 'eu-frankfurt-2', 'https://cloud.oracle.eu'],
+    ['oc41', 'me-dubai-3', 'https://cloud.dutechcloud.ae'],
+    ['oc41', 'me-dubai-2', 'https://cloud.dutechcloud.ae'],
+  ])('routes %s / %s Review and README links to the correct console', (realm, region, origin) => {
+    for (const scope of ['complete', 'regional'] as const) {
+      const config = buildConfig(emptyLzModel());
+      Object.assign(config, { realm, region, stack_scope: scope });
+      const links = deploymentConsoleLinks(config)!;
+      const create = new URL(links.createStackUrl);
+      const stacks = new URL(links.stacksUrl);
+      expect(create.origin).toBe(origin);
+      expect(stacks.origin).toBe(origin);
+      expect(create.pathname).toBe('/resourcemanager/stacks/create');
+      expect(stacks.pathname).toBe('/resourcemanager/stacks');
+      expect(create.searchParams.get('region')).toBe(region);
+      expect(stacks.searchParams.get('region')).toBe(region);
+      expect(create.searchParams.get('zipUrl')).toContain('/tags/v2.2.0.zip');
+      expect(JSON.parse(create.searchParams.get('zipUrlVariables')!)).toEqual({ configuration_source: 'ocibucket' });
+      expect([...create.searchParams.keys()].sort()).toEqual(['region', 'zipUrl', 'zipUrlVariables']);
+      const readme = deploymentReadme(config, expectedDeploymentFiles(config));
+      expect(readme).toContain(links.createStackUrl);
+      expect(readme).toContain(links.stacksUrl);
+      expect(readme.includes(OC41_CONSOLE_STEP)).toBe(realm === 'oc41');
+      expect(readme).toContain('Use one stack for both phases');
+      if (realm !== 'oc1') expect(readme).not.toContain('https://cloud.oracle.com/');
+    }
+  });
+
+  it.each(['oc2', 'oc99', 'constructor', '__proto__'])('does not route unknown realm %s to the commercial console', (realm) => {
+    const config = buildConfig(emptyLzModel());
+    config.realm = realm;
+    expect(deploymentConsoleLinks(config)).toBeNull();
+    expect(deploymentReadme(config, expectedDeploymentFiles(config))).not.toContain('/resourcemanager/stacks');
   });
 });

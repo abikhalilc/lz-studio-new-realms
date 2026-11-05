@@ -2,7 +2,7 @@ Du Alloy OC41 support: comparison and approval plan
 Recorded: 2026-11-05
 Status: Steps 1 and 2 complete; Step 2 generator changes tested.
 Step 3 review and approved implementations 3A/3B/3C complete.
-Step 4 approved and implemented; Steps 5 and 6 remain unapproved.
+Steps 4 and 5 approved and implemented; Step 6 remains unapproved.
 Studio now exposes OC1, OC19 and OC41 with the verified PCZ/ABR catalog.
 
 Scope
@@ -153,7 +153,28 @@ Step 4 (approved and implemented): Expose OC41 and verified regions in Studio.
   Acceptance: OC41 selection and round trips work with the verified generator;
   existing OC1/OC19 selections and stored designs retain their behavior.
 
-Step 5: Make deployment handover realm-aware.
+Step 5 (approved, console handover implemented): Make deployment handover realm-aware.
+  Result: shared deploymentConsoleLinks selects cloud.dutechcloud.ae for OC41,
+  cloud.oracle.eu for OC19 (corrected from the commercial console using Oracle's
+  documented sign-in base) and cloud.oracle.com for OC1. Both Create Stack and
+  stacks links carry the selected region. Unsupported realms get no console
+  link; they do not fall back to the commercial console.
+  Review and README.txt use the same links, retaining the v2.2.0 archive,
+  configuration_source=ocibucket and the private two-phase file workflow.
+  Only region and source defaults enter the URL, never account/domain metadata.
+  OC41 guidance explicitly records pending ZIP-prefill/provider validation and
+  supplies manual archive upload as a fallback without claiming it was tested.
+  Validation: 40 focused tests pass for Home/DR in all three realms, both OC41
+  regions, exact source parameters, unsupported realms and UI/README agreement.
+  Full lint, TypeScript checks and production build pass. An isolated browser
+  preview verified the Du links and selected ABR region; the preview was stopped.
+  An unauthenticated HEAD request to the Du Create Stack address returned 200.
+  This verifies HTTP reachability only, not authenticated routing or ZIP import.
+  The pinned Orchestrator schema was inspected for private source field names.
+  No provider/runtime test, Terraform init/plan/apply, console sign-in or resource
+  creation occurred. Provider compatibility remains a Step 6 validation item.
+  No Terraform wrapper or provider version change is included.
+  OC19 source: https://docs.oracle.com/en-us/iaas/Content/sovereign-cloud/eu-sovereign-cloud.htm
   Main files: src/services/deployment.ts, ReviewStep.tsx and their tests.
   Use the verified Du console URL and a tested Orchestrator/provider combination.
   Preserve private configuration sourcing and consistent two-phase instructions.

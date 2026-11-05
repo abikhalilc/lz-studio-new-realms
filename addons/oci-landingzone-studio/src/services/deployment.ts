@@ -4,11 +4,27 @@ import type { LzConfig } from './lzConfig';
 export const ORCHESTRATOR_VERSION = 'v2.2.0';
 export const ORCHESTRATOR_URL = 'https://github.com/oci-landing-zones/terraform-oci-modules-orchestrator';
 export const ORCHESTRATOR_RELEASE_URL = `${ORCHESTRATOR_URL}/releases/tag/${ORCHESTRATOR_VERSION}`;
-export const RESOURCE_MANAGER_STACKS_URL = 'https://cloud.oracle.com/resourcemanager/stacks';
-export const DEPLOY_TO_OCI_URL = `${RESOURCE_MANAGER_STACKS_URL}/create?${new URLSearchParams({
-  zipUrl: `${ORCHESTRATOR_URL}/archive/refs/tags/${ORCHESTRATOR_VERSION}.zip`,
-  zipUrlVariables: JSON.stringify({ configuration_source: 'ocibucket' }),
-})}`;
+// OC41 evidence: OC41-VERIFIED-PROFILE.txt. OC19 console base:
+// https://docs.oracle.com/en-us/iaas/Content/sovereign-cloud/eu-sovereign-cloud.htm
+const CONSOLE_BASE_URLS: Partial<Record<string, string>> = {
+  oc1: 'https://cloud.oracle.com',
+  oc19: 'https://cloud.oracle.eu',
+  oc41: 'https://cloud.dutechcloud.ae',
+};
+
+export function deploymentConsoleLinks(config: Pick<LzConfig, 'realm' | 'region'>): { stacksUrl: string; createStackUrl: string } | null {
+  const base = Object.hasOwn(CONSOLE_BASE_URLS, config.realm) ? CONSOLE_BASE_URLS[config.realm] : undefined;
+  if (!base) return null;
+  const stacks = new URL('/resourcemanager/stacks', base);
+  stacks.searchParams.set('region', config.region);
+  const create = new URL('/resourcemanager/stacks/create', base);
+  create.searchParams.set('region', config.region);
+  create.searchParams.set('zipUrl', `${ORCHESTRATOR_URL}/archive/refs/tags/${ORCHESTRATOR_VERSION}.zip`);
+  create.searchParams.set('zipUrlVariables', JSON.stringify({ configuration_source: 'ocibucket' }));
+  return { stacksUrl: stacks.toString(), createStackUrl: create.toString() };
+}
+
+export const OC41_CONSOLE_STEP = 'OC41 console ZIP prefill and Terraform provider compatibility still require deployment validation. If the link does not populate the source, download the pinned Orchestrator archive from the release link and upload it in Create Stack. Select rms-facade and confirm the private Object Storage settings and region before planning.';
 
 export const PRIVATE_SOURCE_STEP = 'Unzip the download and review the generated JSON files. Replace any required placeholders, then upload the JSON files to your private Object Storage bucket.';
 export const APPLY_STEP = 'Select Create without running an apply. From the stack details page, select Plan, review the changes and policy impact, then select Apply. Wait for a successful apply before starting phase 2.';
@@ -43,6 +59,7 @@ export function deploymentPrerequisites(config: LzConfig): string[] {
       'Cloud Guard: inspect any existing tenancy-root target, its coverage and recipes, and the Terraform state that manages it before applying.',
       'The pinned Security module defaults to skipping an existing Cloud Guard target with a different name. A matching name does not prove this stack owns it. Review any target import, replacement or ownership change separately.',
     ] : []),
+    ...(config.realm === 'oc41' ? [OC41_CONSOLE_STEP] : []),
     ...(config.realm === 'oc41' ? [regional
       ? 'OC41 usage reports: this DR package contains no IAM configuration. The Home Region package currently omits cross-tenancy usage-report access until an OC41 reporting-tenancy OCID is verified. Verify reporting access with the Home deployment owner.'
       : 'OC41 usage reports: this package omits cross-tenancy access to the reporting tenancy because its OCID is not verified. Local usage-report and budget permissions remain. Arrange and review any additional reporting access separately; do not reuse an OC1 or OC19 reporting-tenancy OCID.'] : []),
@@ -130,6 +147,7 @@ export function deploymentCliSteps(config: LzConfig): string[] {
 }
 
 export function deploymentReadme(config: LzConfig, files: string[]): string {
+  const consoleLinks = deploymentConsoleLinks(config);
   const scope = config.stack_scope === 'regional' ? 'DR' : 'Home Region';
   const [first, second] = deploymentStages(files, completionNetwork(config));
   const handover = deploymentHandover(config);
@@ -147,7 +165,8 @@ export function deploymentReadme(config: LzConfig, files: string[]): string {
     `${CONFIG_FILENAME} is the design source. README.txt and diagram exports are review artifacts. Upload only the generated deployment JSON files; do not mix them with published blueprint files.`,
     '',
     '2. Create and apply phase 1',
-    `Open ${DEPLOY_TO_OCI_URL} and select rms-facade as the working directory.`,
+    consoleLinks ? `Open ${consoleLinks.createStackUrl} and select rms-facade as the working directory.` : 'Choose a supported realm in Studio before opening Resource Manager.',
+    ...(consoleLinks ? [`Resource Manager stacks: ${consoleLinks.stacksUrl}`] : []),
     'Confirm configuration_source = "ocibucket". Enter your bucket in oci_configuration_bucket and set oci_configuration_objects to exactly these phase 1 files:',
     ...first.files.map((file) => `  ${file}`),
     ...deploymentSettings(config),
