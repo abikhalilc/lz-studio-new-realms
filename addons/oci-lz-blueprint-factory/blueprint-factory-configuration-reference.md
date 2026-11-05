@@ -162,7 +162,8 @@ resources from a previous stack. Check for conflicting group names before
 deployment. Additional custom existing domains are not supported by this option.
 
 Omission or `null` preserves current `id_lz_common` creation and published output
-defaults. The Studio UI input for this choice is a separately approved step.
+defaults. Studio exposes this choice in Foundation and preserves it in saved
+designs and config exports/imports. Linked DR designs inherit it from Home.
 
 `security_targets` can contain only names defined under `environments`. Omit it to apply the default targeting to every configured environment.
 

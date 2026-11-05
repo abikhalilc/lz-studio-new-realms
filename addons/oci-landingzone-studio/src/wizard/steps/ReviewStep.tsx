@@ -30,6 +30,7 @@ import { validateNotificationEmails } from '../../services/notificationEmails';
 import { validateRemotePeering } from '../../services/remotePeering';
 import { validateRegionalDeployment } from '../../services/regionalDeployment';
 import { regionShortNameError } from '../../services/regions';
+import { identityDomainError, identityDomainLabel } from '../../services/identityDomain';
 import {
   APPLY_STEP, DEPLOY_TO_OCI_URL, EXISTING_DEPLOYMENT_STEP, HUB_C_BACKEND_STEPS, ORCHESTRATOR_VERSION, UPDATE_STEP,
   ORCHESTRATOR_URL as LANDING_ZONE_ORCHESTRATOR_URL,
@@ -110,8 +111,10 @@ export default function ReviewStep({ designName, getDiagram, diagramReady = true
   const exacs = exadataReadiness(model, 'exacs');
   const contractErrors = useMemo(() => {
     const shortNameError = regionShortNameError(model.foundation.regionShortName);
+    const domainError = identityDomainError(model.foundation);
     return [...new Set([
       ...(shortNameError ? [shortNameError] : []),
+      ...(domainError ? [domainError] : []),
       ...validatePlatformContracts(model), ...validateExadataModel(model),
       ...validateNotificationEmails(model.foundation.notifications, regional),
       ...validateHybridConnectivity(model), ...validateRemotePeering(model), ...validateRegionalDeployment(model),
@@ -197,6 +200,7 @@ export default function ReviewStep({ designName, getDiagram, diagramReady = true
               ['Deployment', regional ? 'DR' : 'Home Region'],
               ['Region', model.foundation.region],
               ['CIS benchmark', `Level ${model.foundation.cisLevel}`],
+              ['Identity domain', `${regional ? 'Home: ' : ''}${identityDomainLabel(model.foundation)}`],
               ['Hub', hub?.label ?? model.network.hubKind],
             ].map(([label, value]) => (
               <div key={label} style={local.sumCell}>

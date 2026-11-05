@@ -26,6 +26,8 @@ export interface FoundationConfig {
   regionShortName: string; // three-letter region key, e.g. fra
   /** Generator security and observability baseline. */
   cisLevel: 1 | 2;
+  /** Omitted: create id_lz_common. Existing mode reuses the operator's Default domain. */
+  identityDomain?: { mode: 'existing_default'; id: string };
   /** One-OE notification topic recipients; blank fields keep the published placeholder. */
   notifications?: OneOeNotifications;
 }

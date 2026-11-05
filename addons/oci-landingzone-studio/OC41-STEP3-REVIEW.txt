@@ -1,7 +1,7 @@
 OC41 Step 3: service and identity review
 Reviewed: 2026-11-05 (Asia/Dubai)
 Application baseline: 087e43b
-Status: review and separately approved 3A complete; 3B/3C remain unapproved.
+Status: review and separately approved 3A/3B complete; 3C remains unapproved.
 
 Scope and decision
 ------------------
@@ -153,7 +153,7 @@ Approval-sized implementation sequence
   Acceptance: no domain is created in existing mode; every selected workload's
   groups/policies resolve consistently; malformed/mismatched IDs are rejected;
   omitted choice preserves current OC1/OC19 and published output behavior.
-3B (subsequent proposal): Studio identity selection and metadata entry, with
+3B (approved and implemented): Studio identity selection and metadata entry, with
   serialization/import/review and saved-design handling. Require enough input to
   identify the existing domain. Keep OC41 hidden until the region UI step.
   Acceptance: explicit choice round-trips, private metadata is not committed,
@@ -188,7 +188,31 @@ membership change, import/adoption, Terraform validation, plan or apply occurred
 
 The input validator proves syntax and realm consistency, not that the supplied
 ID is actually Default or that it is active/authorized. The operator must verify
-those facts privately before deployment. UI selection is still pending 3B.
+those facts privately before deployment. UI selection was subsequently completed
+in approved Step 3B, described below.
+
+3B implementation record
+-------------------------
+Foundation now provides an identity-domain selector and a required OCID input
+for existing mode. Omitted choice preserves current defaults and saved designs;
+the optional model field requires no version reset. Format/realm errors appear
+inline, block Review downloads and are checked again at generator entry.
+Config serialization/import preserve the choice; null imports retain the default
+and unsupported fields/modes are rejected. No live-domain lookup is performed
+in the browser, and no signing key or authentication credential is requested.
+
+Review and the ZIP prerequisites identify the selected existing-domain path.
+Linked DR settings inherit and lock the Home choice; updates in Home sync while
+independent duplicates remain independent. DR guidance does not request new
+group-creation permissions. OC41 remains absent from Studio's realm options.
+
+Validation: 993 tests across all 79 Studio test files pass, together with full
+ESLint, TypeScript checks and production build. An isolated preview on a separate
+local origin verified selector behavior, missing/wrong-realm feedback, valid-ID
+acceptance, saved-value restoration after reload, and Review's selected-domain
+summary and download availability. A screenshot used synthetic identifiers only.
+The preview was stopped afterward. No current customer design, OCI resource,
+Terraform job, group membership or private account configuration was changed.
 
 Affected source areas
 ---------------------

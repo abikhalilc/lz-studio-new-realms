@@ -31,6 +31,14 @@ Studio complements the [OCI LZ Blueprint Factory](../oci-lz-blueprint-factory/RE
 
 ## 2. Design workflow
 
+In Foundation, **Identity domain** defaults to creating `id_lz_common`. Select
+**Use existing Default domain** to enter the OCID of your active Default domain
+in the selected realm. Studio checks its format and realm; verify its actual
+identity and deployment permissions in OCI and check group-name conflicts.
+The choice and OCID are saved in this browser and included in config exports.
+Review identifies the selected domain. Linked DR designs inherit this setting
+from Home; DR does not create a domain or groups. Existing groups are not adopted.
+
 Studio keeps one canonical Landing Zone model while you work. The wizard, JSON configuration, live network diagram, packet-flow trace, downloadable Draw.io diagram, and generated deployment files all derive from that same model.
 
 1. **Start a design**: choose a design name, OCI region and realm, deployment type, the CIS baseline, and One-OE notification recipients. Configure Cloud Guard, IAM, Network, and Security separately, or select one email list for all applicable topics. Regional DR uses Network and Security topics. The Network recipient also covers ExaCS network notifications.

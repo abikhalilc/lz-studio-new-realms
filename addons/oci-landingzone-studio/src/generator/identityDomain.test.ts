@@ -3,6 +3,8 @@ import { resolve } from 'node:path';
 import { beforeAll, describe, expect, it } from 'vitest';
 import { evaluate, setAssetLoader } from './jsonnetVm';
 import { buildVirtualFs } from './virtualFs';
+import { generateOutputs } from './generate';
+import { emptyLzModel } from '../model/defaults';
 
 const config = readFileSync(resolve('../../tests/gen/testdata/configs/pass/existing_default_domain_all_workloads.jsonnet'), 'utf8');
 interface IamOutput {
@@ -18,6 +20,19 @@ beforeAll(() => {
 });
 
 describe('existing Default identity domain', () => {
+  it('generates the Studio-selected domain and rejects missing metadata before running the engine', async () => {
+    const model = emptyLzModel();
+    model.foundation.identityDomain = { mode: 'existing_default', id: '' };
+    await expect(generateOutputs(model)).rejects.toThrow('Enter the OCID');
+    model.foundation.identityDomain.id = 'ocid1.domain.oc1..fixture';
+    const outputs = await generateOutputs(model);
+    const iam = JSON.parse(outputs.files['iam.json']);
+    expect(iam).not.toHaveProperty('identity_domains_configuration');
+    expect(iam.identity_domain_groups_configuration.default_identity_domain_id).toBe(model.foundation.identityDomain.id);
+    expect(outputs.config).toContain('identity_domain:');
+    expect(outputs.files['iam.json']).not.toContain('id_lz_common');
+  }, 60_000);
+
   it('matches every checked-in published IAM/identity snapshot with the choice omitted', async () => {
     const { files } = buildVirtualFs();
     const entries = Object.keys(files).filter((name) => /(?:identity(?:_uc[123])?|iam)\.jsonnet$/.test(name)).sort();

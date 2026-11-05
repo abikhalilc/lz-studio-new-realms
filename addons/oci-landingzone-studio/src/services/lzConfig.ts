@@ -62,6 +62,7 @@ export interface LzConfig {
   region: string;
   region_short_name: string;
   cis_level: 1 | 2;
+  identity_domain?: { mode: 'existing_default'; id: string };
   notification_emails?: Partial<Record<'default' | 'cloudguard' | 'iam' | 'network' | 'security', string[]>>;
   hub: {
     kind: HubKind;
@@ -208,6 +209,7 @@ export function buildConfig(model: LzModel, includeExadata = true): LzConfig {
     region: f.region,
     region_short_name: f.regionShortName,
     cis_level: f.cisLevel,
+    ...(f.identityDomain ? { identity_domain: { mode: f.identityDomain.mode, id: f.identityDomain.id } } : {}),
     ...(Object.keys(notification_emails).length ? { notification_emails } : {}),
     hub: {
       kind: model.network.hubKind,
@@ -386,6 +388,7 @@ export function serializeConfig(model: LzModel, upToStep = Infinity, redactSecre
     `  region: ${quote(c.region)},`,
     `  region_short_name: ${quote(c.region_short_name)},`,
     `  cis_level: ${c.cis_level},`,
+    ...(c.identity_domain ? [`  identity_domain: ${jsonnetValue(c.identity_domain)},`] : []),
     ...(c.stack_scope ? [`  stack_scope: ${quote(c.stack_scope)},`] : []),
     ...(c.dr_region ? [`  dr_region: ${quote(c.dr_region)},`] : []),
     ...(c.notification_emails ? [`  notification_emails: ${jsonnetValue(c.notification_emails)},`] : []),

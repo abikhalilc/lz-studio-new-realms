@@ -20,6 +20,26 @@ async function roundTrip(model: LzModel) {
 }
 
 describe('Studio config import', () => {
+  it.each(['oc1', 'oc19'])('round-trips the existing Default domain for %s', async (realm) => {
+    const model = emptyLzModel();
+    model.foundation.realm = realm;
+    if (realm === 'oc19') { model.foundation.region = 'eu-frankfurt-2'; model.foundation.regionShortName = 'str'; }
+    model.foundation.identityDomain = { mode: 'existing_default', id: `ocid1.domain.${realm}..fixture` };
+    const restored = await roundTrip(model);
+    expect(restored.model.foundation.identityDomain).toEqual(model.foundation.identityDomain);
+  });
+
+  it('accepts null as the unchanged default and rejects invalid or extra identity settings', () => {
+    const config = buildConfig(emptyLzModel());
+    expect(importConfig({ ...config, identity_domain: null }).model.foundation.identityDomain).toBeUndefined();
+    for (const domain of [
+      { mode: 'existing_default', id: '' },
+      { mode: 'existing_default', id: 'ocid1.domain.oc41..fixture' },
+      { mode: 'custom', id: 'ocid1.domain.oc1..fixture' },
+      { mode: 'existing_default', id: 'ocid1.domain.oc1..fixture', name: 'Custom' },
+    ]) expect(() => importConfig({ ...config, identity_domain: domain })).toThrow(/identity_domain/);
+  });
+
   it.each<HubKind>(['hub_a', 'hub_b', 'hub_c', 'hub_e'])('restores %s foundation and project membership', async (hubKind) => {
     const model = emptyLzModel();
     model.foundation.cisLevel = 1;

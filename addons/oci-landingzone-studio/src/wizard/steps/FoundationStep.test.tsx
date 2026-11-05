@@ -13,6 +13,36 @@ function render(model: LzModel) {
 }
 
 describe('observability fields', () => {
+  it('keeps the old new-domain choice selected without an OCID field', () => {
+    const html = render(emptyLzModel());
+    expect(html).toContain('id="lz-identity-domain"');
+    expect(html).toMatch(/<option value="create"[^>]*selected/);
+    expect(html).not.toContain('id="lz-identity-domain-id"');
+  });
+
+  it('shows an accessible required OCID error for existing mode', () => {
+    const model = emptyLzModel();
+    model.foundation.identityDomain = { mode: 'existing_default', id: '' };
+    const html = render(model);
+    expect(html).toMatch(/id="lz-identity-domain-id"[^>]*aria-invalid="true"/);
+    expect(html).toMatch(/id="lz-identity-domain-id"[^>]*required/);
+    expect(html).toContain('lz-identity-domain-id-help lz-identity-domain-id-error');
+    expect(html).toContain('Enter the OCID of the existing Default identity domain.');
+  });
+
+  it('locks linked identity settings while retaining the inherited value', () => {
+    const model = emptyLzModel();
+    model.foundation.stackScope = 'regional';
+    model.foundation.identityDomain = { mode: 'existing_default', id: 'ocid1.domain.oc1..fixture' };
+    const html = renderToStaticMarkup(<MemoryRouter><WizardProvider initialModel={model} homeSource={{ id: 'home', model }}>
+      <FoundationStep name="DR" onNameChange={() => {}} onNameBlur={() => {}} />
+    </WizardProvider></MemoryRouter>);
+    expect(html).toMatch(/id="lz-identity-domain"[^>]*disabled/);
+    expect(html).toMatch(/id="lz-identity-domain-id"[^>]*disabled/);
+    expect(html).toContain('ocid1.domain.oc1..fixture');
+    expect(html).toContain('This setting syncs from the linked Home Region design.');
+  });
+
   it('keeps a custom region short name editable', () => {
     const model = emptyLzModel();
     model.foundation.regionShortName = 'fr2';

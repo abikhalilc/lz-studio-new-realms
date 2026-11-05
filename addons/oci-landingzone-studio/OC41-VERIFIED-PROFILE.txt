@@ -132,7 +132,9 @@ Remaining dependencies and decisions
 2. Identity-domain mode: existing Default domain is verified. Creating an
    additional domain, its license type, quota and API permissions are untested.
    Approved Step 3A adds optional existing Default-domain support to config-mode
-   generation, preserving omitted/null defaults. Studio input is pending 3B.
+   generation, preserving omitted/null defaults. Approved Step 3B adds Studio
+   input, validation, saved-design retention and config import/export. Live
+   verification of the supplied domain identity and permissions remains required.
 3. Provisioning matrix: service catalog entries and enabled Cloud Guard are
    verified. Exact supported features, quotas/capacity, scanning targets, Vault
    key operations, service connectors, firewalls, workload images and OKE

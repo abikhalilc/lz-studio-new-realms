@@ -7,6 +7,21 @@ import { emptyHybridConnectivity, newVpn } from '../../services/hybridConnectivi
 import ReviewStep from './ReviewStep';
 
 describe('Resource Manager deployment link', () => {
+  it('shows the existing-domain choice and blocks download until its OCID is valid', () => {
+    const model = emptyLzModel();
+    model.foundation.notifications!.default = 'ops@example.com';
+    model.foundation.identityDomain = { mode: 'existing_default', id: '' };
+    const render = () => renderToStaticMarkup(<MemoryRouter><WizardProvider initialModel={model}>
+      <ReviewStep designName="Identity test" />
+    </WizardProvider></MemoryRouter>);
+    expect(render()).toContain('Existing Default domain');
+    expect(render()).toContain('Enter the OCID of the existing Default identity domain.');
+    expect(render()).toMatch(/<button[^>]*disabled[^>]*>Download files/);
+    model.foundation.identityDomain.id = 'ocid1.domain.oc1..fixture';
+    expect(render()).not.toContain('Enter the OCID');
+    expect(render()).not.toMatch(/<button[^>]*disabled[^>]*>Download files/);
+  });
+
   it('blocks generation when a custom region short name is invalid', () => {
     const model = emptyLzModel();
     model.foundation.regionShortName = 'long';

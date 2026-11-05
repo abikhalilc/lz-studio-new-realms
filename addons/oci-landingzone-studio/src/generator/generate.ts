@@ -23,6 +23,7 @@ import { validateRemotePeering } from '../services/remotePeering';
 import { validateRegionalDeployment } from '../services/regionalDeployment';
 import { regionShortNameError } from '../services/regions';
 import { validateHybridConnectivity } from '../services/hybridConnectivity';
+import { identityDomainError } from '../services/identityDomain';
 
 export interface GeneratedOutputs {
   /** The wizard config that was fed to the generator. */
@@ -94,6 +95,8 @@ export function generateFromUpstreamDefaults(profile: string): Promise<Record<st
 export async function generateOutputs(model: LzModel): Promise<GeneratedOutputs> {
   const issues = [...validateHybridConnectivity(model), ...validatePlatformContracts(model), ...validateOkeModel(model), ...validateExadataModel(model), ...validateRemotePeering(model), ...validateRegionalDeployment(model)];
   const shortNameError = regionShortNameError(model.foundation.regionShortName);
+  const domainError = identityDomainError(model.foundation);
+  if (domainError) issues.push(domainError);
   if (shortNameError) issues.push(shortNameError);
   if (issues.length) throw new GeneratorError(issues.join('\n'));
   const config = serializeConfig(model);

@@ -36,6 +36,9 @@ export function deploymentPrerequisites(config: LzConfig): string[] {
   const peers = Object.values(config.remote_peering_connections ?? {});
   const tunnels = Object.values(config.hybrid_connectivity?.ipsecs ?? {}).flatMap((vpn) => Object.values(vpn.tunnels_management));
   return [
+    ...(config.identity_domain ? [regional
+      ? 'Confirm that the Home Region deployment uses the supplied active Default identity domain. DR reuses Home IAM and does not create a domain or groups.'
+      : 'Verify that the supplied domain OCID identifies the active Default identity domain in this realm and that the deployment account can manage the requested groups. Check group-name conflicts; this configuration does not adopt existing groups or migrate an existing stack.'] : []),
     ...(regional ? [
       'Deploy the Home Region stack first with matching compartments, project and platform IAM, and governance.'
         + (config.cis_level === 2 ? ' Select this DR region in Home to grant Object Storage access to its encryption keys.' : ''),

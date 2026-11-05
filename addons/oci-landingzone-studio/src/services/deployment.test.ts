@@ -6,6 +6,17 @@ import { newPlatform } from './platforms';
 import { emptyHybridConnectivity, newVpn } from './hybridConnectivity';
 
 describe('default deployment settings', () => {
+  it('includes domain verification in the ZIP instructions and keeps DR group permissions with Home', () => {
+    const model = emptyLzModel();
+    model.foundation.identityDomain = { mode: 'existing_default', id: 'ocid1.domain.oc1..fixture' };
+    const config = buildConfig(model);
+    expect(deploymentReadme(config, expectedDeploymentFiles(config))).toContain('active Default identity domain');
+    config.stack_scope = 'regional';
+    const prerequisites = deploymentPrerequisites(config).join('\n');
+    expect(prerequisites).toContain('DR reuses Home IAM');
+    expect(prerequisites).not.toContain('can manage the requested groups');
+  });
+
   it('presents preparation, phase 1 inputs and apply, then phase 2 inputs and apply in execution order', () => {
     const config = buildConfig(emptyLzModel());
     const guide = deploymentReadme(config, expectedDeploymentFiles(config));

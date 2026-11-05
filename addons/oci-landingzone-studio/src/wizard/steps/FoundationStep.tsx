@@ -17,6 +17,7 @@ import { configuredVcnCidrs } from '../../services/exadata';
 import { customDefaultSubnets } from '../../services/platforms';
 import { environmentPlatformCidr } from '../../services/oneOeCidrs';
 import { notificationEmailError } from '../../services/notificationEmails';
+import { identityDomainError } from '../../services/identityDomain';
 import { oracle } from '../../theme';
 import {
   findRegion, getDefaultRegionForRealm, getRegionsForRealm, REALM_OPTIONS, regionShortNameError,
@@ -74,6 +75,7 @@ export default function FoundationStep({ name, onNameChange, onNameBlur, nameErr
   const regionOptions = getRegionsForRealm(f.realm);
   const regionError = !findRegion(f.realm, f.region) ? 'Select a region in this realm.' : null;
   const shortNameError = regionShortNameError(f.regionShortName);
+  const domainError = identityDomainError(f);
   const homeRegionError = regional && (!findRegion(f.realm, f.homeRegion ?? '') || f.homeRegion === f.region)
     ? 'Select a Home Region different from the DR region.' : null;
   const newNameError = newName.trim() ? configKeyError(newName, envs.map((env) => env.name)) : null;
@@ -238,6 +240,29 @@ export default function FoundationStep({ name, onNameChange, onNameBlur, nameErr
             </div>
           </div>
           {!regional && <p id="lz-dr-region-help" style={s.help}>Selecting a DR region allows its Object Storage service to use this landing zone's encryption keys. Create the DR deployment separately.</p>}
+          <div style={{ ...s.field, marginTop: 14 }}>
+            <label style={s.label} htmlFor="lz-identity-domain">Identity domain</label>
+            <select id="lz-identity-domain" value={f.identityDomain ? 'existing_default' : 'create'} disabled={!!homeSource}
+              onChange={(event) => setFoundation({ identityDomain: event.target.value === 'existing_default' ? { mode: 'existing_default', id: '' } : undefined })}
+              aria-describedby="lz-identity-domain-help">
+              <option value="create">{regional ? 'Home deployment uses id_lz_common' : 'Create a new domain (id_lz_common)'}</option>
+              <option value="existing_default">Use existing Default domain</option>
+            </select>
+            <div id="lz-identity-domain-help" style={{ ...s.help, marginTop: 6 }}>{regional
+              ? 'Use the identity domain from your Home Region deployment. DR does not create a domain or groups.'
+              : f.identityDomain ? 'Creates the requested groups in Default when you deploy. Check group-name conflicts; existing groups are not adopted.'
+              : 'Creates a separate identity domain and the requested groups when you deploy.'}
+              {homeSource && ' This setting syncs from the linked Home Region design.'}
+            </div>
+          </div>
+          {f.identityDomain && <div style={s.field}>
+            <label style={s.label} htmlFor="lz-identity-domain-id">Default domain OCID</label>
+            <input id="lz-identity-domain-id" style={s.input} value={f.identityDomain.id} disabled={!!homeSource}
+              onChange={(event) => setFoundation({ identityDomain: { mode: 'existing_default', id: event.target.value } })}
+              {...fieldErrorProps('lz-identity-domain-id-error', domainError, 'lz-identity-domain-id-help')} required autoComplete="off" spellCheck={false} />
+            <div id="lz-identity-domain-id-help" style={{ ...s.help, marginTop: 6 }}>Enter the OCID of the active Default domain in this realm. Verify the domain and deployment permissions in OCI. This value is saved in this browser and included in exported configuration.</div>
+            <FieldError id="lz-identity-domain-id-error" error={domainError} />
+          </div>}
         </div>
       </section>
 

@@ -31,6 +31,23 @@ beforeEach(() => {
 });
 
 describe('lzStore', () => {
+  it('retains existing-domain metadata through save, reload, duplication and linked DR', () => {
+    const home = createSaved('Identity test');
+    const model = home.model;
+    model.foundation.drRegion = 'eu-amsterdam-1';
+    model.foundation.identityDomain = { mode: 'existing_default', id: 'ocid1.domain.oc1..fixture' };
+    expect(saveLZ(home.id, model).ok).toBe(true);
+    expect(getLZ(home.id)?.model.foundation.identityDomain).toEqual(model.foundation.identityDomain);
+    const copy = duplicateLZ(home.id).record!;
+    expect(getLZ(copy.id)?.model.foundation.identityDomain).toEqual(model.foundation.identityDomain);
+    const dr = createDrLZ(home.id).record!;
+    expect(getLZ(dr.id)?.model.foundation.identityDomain).toEqual(model.foundation.identityDomain);
+    model.foundation.identityDomain.id = 'ocid1.domain.oc1..updated';
+    expect(saveLZ(home.id, model).ok).toBe(true);
+    expect(getLZ(dr.id)?.model.foundation.identityDomain?.id).toBe('ocid1.domain.oc1..updated');
+    expect(getLZ(copy.id)?.model.foundation.identityDomain?.id).toBe('ocid1.domain.oc1..fixture');
+  });
+
   it.each(['regional', 'complete'] as const)('retains and restores the original combined source when the first edit uses %s scope', (scope) => {
     const home = emptyLzModel();
     const draft = { ...createDrDraft(home), region: 'eu-amsterdam-1' };

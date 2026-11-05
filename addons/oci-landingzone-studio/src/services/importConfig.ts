@@ -3,6 +3,7 @@ import { emptyLzModel } from '../model/defaults';
 import type { ExadataNotifications, HubKind, LzModel, OkePlatformParams, PlatformConfig, Subnet } from '../model/types';
 import { buildConfig } from './lzConfig';
 import { exadataNotificationSource } from './exadata';
+import { identityDomainError } from './identityDomain';
 
 type ObjectValue = Record<string, unknown>;
 export interface ImportedConfig { model: LzModel; warnings: string[] }
@@ -186,6 +187,14 @@ export function importConfig(value: unknown): ImportedConfig {
     realm: text(config.realm, 'realm'), region: text(config.region, 'region'),
     regionShortName: text(config.region_short_name, 'region_short_name'), cisLevel,
   };
+  if (config.identity_domain !== undefined && config.identity_domain !== null) {
+    const domain = object(config.identity_domain, 'identity_domain');
+    model.foundation.identityDomain = {
+      mode: choice(domain.mode, ['existing_default'] as const, 'identity_domain.mode'),
+      id: text(domain.id, 'identity_domain.id'),
+    };
+    if (identityDomainError(model.foundation)) invalid('identity_domain.id');
+  }
   if (config.stack_scope !== undefined) model.foundation.stackScope = choice(config.stack_scope, ['complete', 'regional'] as const, 'stack_scope');
   if (config.dr_region !== undefined) model.foundation.drRegion = text(config.dr_region, 'dr_region');
   if (config.remote_peering_connections !== undefined) model.remotePeeringConnections = Object.entries(object(config.remote_peering_connections, 'remote_peering_connections')).map(([name, value], index) => {
@@ -261,10 +270,11 @@ export function importConfig(value: unknown): ImportedConfig {
   if (model.foundation.stackScope === 'regional') warnings.push('Choose the Home Region in Foundation and review its dependencies in Review before deploying this DR stack.');
   restoreExadata(model, 'exacc', shared, envs, warnings);
   restoreExadata(model, 'exacs', shared, envs, warnings);
-  const expected = { ...config, cis_level: config.cis_level ?? 2, environments: Object.fromEntries(Object.entries(envs).map(([name, value]) => {
+  const expected: ObjectValue = { ...config, cis_level: config.cis_level ?? 2, environments: Object.fromEntries(Object.entries(envs).map(([name, value]) => {
     const env = object(value, `environments.${name}`);
     return [name, { ...env, projects: env.projects ?? {}, platforms: env.platforms ?? {} }];
   })), security_targets: config.security_targets ?? Object.keys(envs), shared_platforms: config.shared_platforms ?? {} };
+  if (config.identity_domain === null) delete expected.identity_domain;
   const diff = difference(expected, buildConfig(model));
   if (diff) invalid(diff);
   return { model, warnings };

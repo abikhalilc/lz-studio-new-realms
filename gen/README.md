@@ -39,7 +39,8 @@ with `Default`; it does not create or replicate a domain, adopt existing groups,
 or migrate resources from another Terraform state. Verify that the OCID belongs
 to Default and check group-name conflicts and permissions before deployment.
 Omit the field or set it to `null` to retain the existing `id_lz_common` defaults.
-The Studio UI does not yet expose this generator option.
+Studio exposes this choice in Foundation under Identity domain, with the domain
+OCID required for existing mode and the selected domain summarized in Review.
 Config-mode extension outputs are emitted as additional files from `result.extra`; for example, OKE emits `oke_clusters.json` and `oke_workers.json`.
 If you set `hub.network.subnets` explicitly, provide the full canonical subnet set for that hub kind; partial hub subnet overrides are rejected during normalization.
 For networked extension-backed platforms, explicit `platform.network.subnets` overrides must match the extension metadata-defined subnet set exactly; otherwise omit subnets and let the extension auto-allocate. Extensions declare network behavior with `metadata.network_mode`: `required`, `forbidden`, or `optional`. Optional-network extensions may omit `platform.network` for IAM/observability-only contributions, or include it to contribute an internal `network` fragment to the final network.
