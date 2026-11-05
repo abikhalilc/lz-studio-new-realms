@@ -200,9 +200,12 @@ describe('hybrid FastConnect provider selector', () => {
 });
 
 describe('generator (go-jsonnet wasm)', () => {
-  it.each([1, 2] as const)('renders verified OC41 constants through the browser engine for CIS%s', async (cisLevel) => {
+  it.each([
+    [1, 'me-dubai-3', 'pcz'], [2, 'me-dubai-3', 'pcz'],
+    [1, 'me-dubai-2', 'abr'], [2, 'me-dubai-2', 'abr'],
+  ] as const)('renders OC41 CIS%s in %s through the browser engine', async (cisLevel, region, shortName) => {
     const model = emptyLzModel();
-    model.foundation = { ...model.foundation, realm: 'oc41', region: 'me-dubai-3', regionShortName: 'pcz', cisLevel };
+    model.foundation = { ...model.foundation, realm: 'oc41', region, regionShortName: shortName, cisLevel };
     const out = await generateOutputs(model);
     const security = JSON.parse(out.files[`security_cis${cisLevel}.json`]);
     const policies = JSON.parse(out.files['iam.json']).policies_configuration.supplied_policies;
@@ -213,15 +216,15 @@ describe('generator (go-jsonnet wasm)', () => {
 
     expect(new Set(recipePolicies).size).toBe(26);
     expect(recipePolicies.every((id) => catalog.has(id))).toBe(true);
-    expect(security.cloud_guard_configuration.reporting_region).toBe('me-dubai-3');
+    expect(security.cloud_guard_configuration.reporting_region).toBe(region);
     expect(policies['PCY-COST-ADMIN-KEY'].statements).toEqual([
       "allow group 'id_lz_common'/'grp-cost-admin' to manage usage-report in tenancy",
       "allow group 'id_lz_common'/'grp-cost-admin' to manage usage-budgets in tenancy",
     ]);
     expect(policies['PCY-SERVICES-ADMIN-KEY'].statements).toContain(
-      'allow service blockstorage, oke, streaming, fssocprod, objectstorage-me-dubai-3 to use keys in tenancy',
+      `allow service blockstorage, oke, streaming, fssocprod, objectstorage-${region} to use keys in tenancy`,
     );
-    expect(out.files['network.json']).toContain('vcn-pcz-lz-hub');
+    expect(out.files['network.json']).toContain(`vcn-${shortName}-lz-hub`);
     expect(JSON.stringify(out.files)).not.toMatch(/\.oc(?:1|19)\./);
   }, 60_000);
 
@@ -655,4 +658,19 @@ it.each(['medium', 'large'] as const)('generates OKE %s after resizing alongside
     expect(out.files['network.json']).toContain(instance.vcnCidr);
   }
   expect(Object.keys(out.files).some((file) => file.includes('oke'))).toBe(true);
+}, 60_000);
+
+
+it.each([1, 2] as const)('generates OC41 CIS%s regional ABR resources without Home IAM', async (cisLevel) => {
+  const model = createRegionalModel();
+  Object.assign(model.foundation, { realm: 'oc41', homeRegion: 'me-dubai-3', region: 'me-dubai-2', regionShortName: 'abr', cisLevel,
+    identityDomain: { mode: 'existing_default', id: 'ocid1.domain.oc41..fixture' } });
+  model.remotePeeringConnections = [{ id: 'home', name: 'home', role: 'requester', remoteCidrs: ['10.3.0.0/21'], peerRegionName: 'me-dubai-3', peerId: 'RPC-HOME-KEY' }];
+  const out = await generateOutputs(model);
+  expect(out.files['iam.json']).toBeUndefined();
+  expect(out.files['governance.json']).toBeUndefined();
+  expect(out.files[`security_cis${cisLevel}.json`]).not.toContain('cloud_guard_configuration');
+  expect(out.files['network.json']).toContain('vcn-abr-lz-hub');
+  expect(out.files['network.json']).toContain('RPC-HOME-KEY');
+  expect(JSON.stringify(out.files)).not.toMatch(/\.oc(?:1|19)\./);
 }, 60_000);

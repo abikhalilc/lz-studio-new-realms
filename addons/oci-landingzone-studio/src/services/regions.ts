@@ -4,8 +4,9 @@
  * Sources (verified 2026-06):
  *   - https://docs.oracle.com/en-us/iaas/Content/General/Concepts/regions.htm
  *   - https://docs.oracle.com/en-us/iaas/Content/General/Concepts/identifiers.htm
- * Studio currently exposes commercial (oc1) and EU Sovereign (oc19) only.
- * OC41 generator constants are verified separately; UI enablement is pending.
+ * OC41 entries verified 2026-11-05: see OC41-VERIFIED-PROFILE.txt for SDK
+ * metadata and read-only region-subscription evidence. Catalog presence does not
+ * establish service parity or deployment readiness in either region.
  */
 
 export interface Region {
@@ -21,6 +22,7 @@ export interface Realm {
 export const REALM_OPTIONS: Realm[] = [
   { id: 'oc1', label: 'OC1 - Commercial' },
   { id: 'oc19', label: 'OC19 - EU Sovereign' },
+  { id: 'oc41', label: 'OC41 - Du Alloy' },
 ];
 
 const SUPPORTED_REALMS = new Set(REALM_OPTIONS.map(({ id }) => id));
@@ -77,6 +79,10 @@ export const REGIONS_BY_REALM: Record<string, Region[]> = {
     { id: 'us-phoenix-1', shortName: 'phx' },
     { id: 'us-saltlake-2', shortName: 'aga' },
     { id: 'us-sanjose-1', shortName: 'sjc' },
+  ],
+  oc41: [
+    { id: 'me-dubai-3', shortName: 'pcz' },
+    { id: 'me-dubai-2', shortName: 'abr' },
   ],
   oc19: [
     { id: 'eu-frankfurt-2', shortName: 'str' },

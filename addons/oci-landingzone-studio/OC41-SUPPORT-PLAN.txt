@@ -1,8 +1,9 @@
 Du Alloy OC41 support: comparison and approval plan
 Recorded: 2026-11-05
 Status: Steps 1 and 2 complete; Step 2 generator changes tested.
-Step 3 review and approved implementations 3A/3B/3C complete; Step 4 requires approval.
-Later steps remain unapproved. Studio still exposes only OC1 and OC19.
+Step 3 review and approved implementations 3A/3B/3C complete.
+Step 4 approved and implemented; Steps 5 and 6 remain unapproved.
+Studio now exposes OC1, OC19 and OC41 with the verified PCZ/ABR catalog.
 
 Scope
 -----
@@ -126,7 +127,25 @@ Step 3: Handle differences in service availability and IAM, where needed.
   diagrams, IAM, generated artifacts and instructions agree.
   Dependency: Step 1 findings determine whether changes are needed and their scope.
 
-Step 4: Expose OC41 and verified regions in Studio.
+Step 4 (approved and implemented): Expose OC41 and verified regions in Studio.
+  Result: OC41 - Du Alloy is selectable, with me-dubai-3 / pcz as its initial
+  selection and me-dubai-2 / abr as the other verified region. This initial UI
+  selection does not establish any tenancy's actual Home Region or subscription.
+  The shared catalog supplies Foundation, DR, linked DR and RPC filtering.
+  Existing realm-change behavior resets Home/DR selections; choosing a region
+  clears a conflicting DR selection and updates its editable naming key.
+  No model version, saved-design migration or provider-service constant changed.
+  FastConnect remains manual for OC41 and checks provider OCID realm/location.
+  Validation: all 1,011 tests across 79 Studio files pass, including both OC41
+  regions at CIS1/CIS2 through the browser generator engine and regional ABR
+  output without Home IAM/governance/Cloud Guard. Tests also cover import/export,
+  storage/duplication/linked DR, same-realm peering, DR selection and FastConnect.
+  Full lint, TypeScript checks and production build pass. An isolated browser
+  preview verified realm/region selection, naming keys, conflicting DR reset,
+  reload retention and distinct Home/DR controls using synthetic metadata only.
+  The preview was stopped; no user design or OCI resource was modified.
+  Deployment console links remain Step 5; provider/runtime validation remains
+  Step 6. Catalog exposure does not certify service availability or deployment.
   Main files: src/services/regions.ts, Foundation controls and region tests.
   Review import/export, saved designs, DR selection, remote peering and manual
   FastConnect provider-service entry for exact realm/region filtering.

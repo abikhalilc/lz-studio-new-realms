@@ -89,3 +89,16 @@ describe('regional designs in the standard model', () => {
     expect(() => importConfig({ ...config, environments: { prod: { unknown: true } } })).toThrow(/unknown/);
   });
 });
+
+
+it('validates OC41 DR against a distinct Home Region in its realm', () => {
+  const model = createRegionalModel();
+  Object.assign(model.foundation, { realm: 'oc41', region: 'me-dubai-2', regionShortName: 'abr', homeRegion: 'me-dubai-3' });
+  expect(validateRegionalDeployment(model)).toEqual([]);
+  model.foundation.homeRegion = 'me-dubai-2';
+  expect(validateRegionalDeployment(model)).toEqual(['Choose a different Home Region in the same realm.']);
+  model.foundation.homeRegion = 'me-dubai-1';
+  expect(validateRegionalDeployment(model)).toHaveLength(1);
+  model.foundation.region = 'eu-frankfurt-1';
+  expect(validateRegionalDeployment(model)).toHaveLength(2);
+});

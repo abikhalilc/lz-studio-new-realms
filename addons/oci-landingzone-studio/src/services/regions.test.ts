@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { emptyLzModel, normalizeModel } from '../model/defaults';
-import { getRegionsForRealm, isSupportedRealm, REALM_OPTIONS, regionShortNameError } from './regions';
+import { findRegion, getDefaultRegionForRealm, getRegionsForRealm, isSupportedRealm, REALM_OPTIONS, regionShortNameError } from './regions';
 
 describe('region short names', () => {
   it.each(['', ' ', 'fra', 'fr2', 'FRA', 'a-b', ' a ', 'é!?'])('accepts any value up to three characters: %j', (value) => {
@@ -13,14 +13,19 @@ describe('region short names', () => {
 });
 
 describe('generator-supported realms', () => {
-  it('keeps Studio limited to OC1 and OC19 pending OC41 UI approval', () => {
-    expect(REALM_OPTIONS.map(({ id }) => id)).toEqual(['oc1', 'oc19']);
+  it('exposes only the three approved realms', () => {
+    expect(REALM_OPTIONS.map(({ id }) => id)).toEqual(['oc1', 'oc19', 'oc41']);
     expect(isSupportedRealm('oc1')).toBe(true);
     expect(isSupportedRealm('oc19')).toBe(true);
     expect(isSupportedRealm('oc2')).toBe(false);
     expect(getRegionsForRealm('oc2')).toEqual([]);
-    expect(isSupportedRealm('oc41')).toBe(false);
-    expect(getRegionsForRealm('oc41')).toEqual([]);
+    expect(isSupportedRealm('oc41')).toBe(true);
+    expect(getRegionsForRealm('oc41')).toEqual([
+      { id: 'me-dubai-3', shortName: 'pcz' }, { id: 'me-dubai-2', shortName: 'abr' },
+    ]);
+    expect(getDefaultRegionForRealm('oc41')).toEqual({ id: 'me-dubai-3', shortName: 'pcz' });
+    expect(findRegion('oc1', 'me-dubai-3')).toBeNull();
+    expect(findRegion('oc41', 'me-dubai-1')).toBeNull();
   });
 
   it('does not rewrite a current-version record', () => {

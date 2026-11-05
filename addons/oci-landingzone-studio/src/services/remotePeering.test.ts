@@ -29,3 +29,13 @@ describe('RPC Kubernetes CIDR validation', () => {
     expect(remotePeeringIssues(model)).toEqual([]);
   });
 });
+
+
+it('accepts verified OC41 peer regions and rejects commercial regions', () => {
+  const model = emptyLzModel();
+  Object.assign(model.foundation, { realm: 'oc41', region: 'me-dubai-3', regionShortName: 'pcz' });
+  model.remotePeeringConnections = [{ id: 'peer', name: 'peer', role: 'acceptor', peerRegionName: 'me-dubai-2', remoteCidrs: ['172.20.0.0/16'] }];
+  expect(remotePeeringIssues(model)).toEqual([]);
+  model.remotePeeringConnections[0].peerRegionName = 'me-dubai-1';
+  expect(remotePeeringIssues(model)).toEqual([expect.objectContaining({ field: 'peerRegionName' })]);
+});

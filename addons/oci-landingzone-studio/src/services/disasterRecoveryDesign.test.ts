@@ -52,6 +52,11 @@ describe('DR design selections', () => {
     model.foundation.realm = 'oc19';
     model.foundation.region = 'eu-frankfurt-2';
     expect(drRegionOptions(model).map((region) => region.id)).toEqual(['eu-madrid-2']);
+    model.foundation.realm = 'oc41';
+    model.foundation.region = 'me-dubai-3';
+    expect(drRegionOptions(model)).toEqual([{ id: 'me-dubai-2', shortName: 'abr' }]);
+    model.foundation.region = 'me-dubai-2';
+    expect(drRegionOptions(model)).toEqual([{ id: 'me-dubai-3', shortName: 'pcz' }]);
     expect(drRegionOptions(emptyLzModel()).some((region) => region.id === 'eu-frankfurt-1')).toBe(false);
   });
 

@@ -31,6 +31,27 @@ beforeEach(() => {
 });
 
 describe('lzStore', () => {
+  it.each([
+    ['me-dubai-3', 'pcz', 'me-dubai-2', 'abr'],
+    ['me-dubai-2', 'abr', 'me-dubai-3', 'pcz'],
+  ])('preserves OC41 Home %s (%s) and linked DR region metadata', (region, shortName, drRegion, drShortName) => {
+    const model = emptyLzModel();
+    Object.assign(model.foundation, { realm: 'oc41', region, regionShortName: shortName, drRegion,
+      identityDomain: { mode: 'existing_default', id: 'ocid1.domain.oc41..fixture' } });
+    const home = createLZ('OC41 fixture', model).record!;
+    expect(getLZ(home.id)?.model.foundation).toEqual(model.foundation);
+    const copy = duplicateLZ(home.id).record!;
+    expect(getLZ(copy.id)?.model.foundation).toEqual(model.foundation);
+    const dr = createDrLZ(home.id).record!;
+    expect(getLZ(dr.id)?.model.foundation).toMatchObject({ realm: 'oc41', stackScope: 'regional',
+      homeRegion: region, region: drRegion, regionShortName: drShortName,
+      identityDomain: model.foundation.identityDomain });
+    model.foundation.regionShortName = 'cus';
+    expect(saveLZ(home.id, model).ok).toBe(true);
+    expect(getLZ(home.id)?.model.foundation.regionShortName).toBe('cus');
+    expect(getLZ(dr.id)?.model.foundation.regionShortName).toBe(drShortName);
+  });
+
   it('retains existing-domain metadata through save, reload, duplication and linked DR', () => {
     const home = createSaved('Identity test');
     const model = home.model;

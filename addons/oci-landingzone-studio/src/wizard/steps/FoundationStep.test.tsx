@@ -166,3 +166,28 @@ describe('observability fields', () => {
     expect(render(model)).not.toContain('role="alert"');
   });
 });
+
+
+describe('OC41 location controls', () => {
+  it('offers the approved realm and only its verified Home and DR regions', () => {
+    const model = emptyLzModel();
+    Object.assign(model.foundation, { realm: 'oc41', region: 'me-dubai-3', regionShortName: 'pcz', drRegion: 'me-dubai-2' });
+    const html = render(model);
+    expect(html).toMatch(/<option value="oc41" selected="">OC41 - Du Alloy<\/option>/);
+    const region = html.match(/<select id="lz-region"[^>]*>(.*?)<\/select>/)![1];
+    expect(region).toContain('value="me-dubai-3"');
+    expect(region).toContain('value="me-dubai-2"');
+    expect(region).not.toContain('eu-frankfurt');
+    expect(region).not.toContain('me-dubai-1');
+    const dr = html.match(/<select id="lz-dr-region"[^>]*>(.*?)<\/select>/)![1];
+    expect(dr).toContain('value="me-dubai-2" selected');
+    expect(dr).not.toContain('me-dubai-3');
+    expect(html).toContain('value="pcz"');
+    model.foundation.stackScope = 'regional';
+    Object.assign(model.foundation, { homeRegion: 'me-dubai-3', region: 'me-dubai-2', regionShortName: 'abr', drRegion: undefined });
+    const regional = render(model);
+    expect(regional).not.toContain('Select a Home Region different');
+    expect(regional).not.toContain('Select a region in this realm');
+    expect(regional).toContain('value="abr"');
+  });
+});

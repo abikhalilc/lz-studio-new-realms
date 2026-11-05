@@ -78,3 +78,13 @@ it('selects verified service IDs and retains manual values without mutating the 
   expect(selectProviderService(selected, '', 'oc1', 'eu-frankfurt-1').provider_service_id).toBeUndefined();
   expect(selectProviderService(manual, service.ocid, 'oc19', 'eu-madrid-2')).toBe(manual);
 });
+
+
+it.each(['me-dubai-3', 'me-dubai-2'])('keeps OC41 %s FastConnect manual and checks provider location', (region) => {
+  expect(providerServicesForRegion('oc41', region)).toEqual([]);
+  const manual: FastConnectConfig = { type: 'PRIVATE', provider_service_id: `ocid1.providerservice.oc41.${region}.fixture` };
+  expect(providerSelectionError(manual, 'oc41', region)).toBeUndefined();
+  expect(providerSelectionError(manual, 'oc1', 'me-dubai-1')).toContain('another location');
+  const other = region === 'me-dubai-3' ? 'me-dubai-2' : 'me-dubai-3';
+  expect(providerSelectionError(manual, 'oc41', other)).toContain('another location');
+});

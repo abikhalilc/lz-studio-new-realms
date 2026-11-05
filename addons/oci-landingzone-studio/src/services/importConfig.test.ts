@@ -20,13 +20,15 @@ async function roundTrip(model: LzModel) {
 }
 
 describe('Studio config import', () => {
-  it.each(['oc1', 'oc19'])('round-trips the existing Default domain for %s', async (realm) => {
+  it.each(['oc1', 'oc19', 'oc41'])('round-trips the existing Default domain for %s', async (realm) => {
     const model = emptyLzModel();
     model.foundation.realm = realm;
+    if (realm === 'oc41') { model.foundation.region = 'me-dubai-3'; model.foundation.regionShortName = 'pcz'; model.foundation.drRegion = 'me-dubai-2'; }
     if (realm === 'oc19') { model.foundation.region = 'eu-frankfurt-2'; model.foundation.regionShortName = 'str'; }
     model.foundation.identityDomain = { mode: 'existing_default', id: `ocid1.domain.${realm}..fixture` };
     const restored = await roundTrip(model);
     expect(restored.model.foundation.identityDomain).toEqual(model.foundation.identityDomain);
+    expect(restored.model.foundation).toMatchObject({ realm, region: model.foundation.region, regionShortName: model.foundation.regionShortName, ...(model.foundation.drRegion ? { drRegion: model.foundation.drRegion } : {}) });
   });
 
   it('accepts null as the unchanged default and rejects invalid or extra identity settings', () => {

@@ -214,3 +214,14 @@ https://github.com/oracle/oci-go-sdk/blob/master/common/regions.go
 S12 Read-only OC41 API observations: operations enumerated above; sanitized
 results recorded in this report and its policy-catalog companion, not a public
 tenant endpoint or a general assurance of service readiness.
+
+
+Step 4 Studio catalog implementation
+------------------------------------
+Separately approved on 2026-11-05: Studio now exposes OC41 - Du Alloy with
+me-dubai-3 / pcz and me-dubai-2 / abr. The shared catalog governs Foundation,
+DR and remote-peering region choices without changing saved-design versions.
+PCZ is the initial UI choice, not a claim about every tenancy's Home Region.
+No FastConnect provider-service IDs were added. The original evidence limits
+above still apply; Step 5 console links and Step 6 runtime validation remain
+pending separate approval. See OC41-SUPPORT-PLAN.txt for validation results.
