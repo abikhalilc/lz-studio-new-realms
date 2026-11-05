@@ -1,0 +1,132 @@
+Du Alloy OC41 support: comparison and approval plan
+Recorded: 2026-11-05
+Status: proposed; application changes have not been approved or implemented.
+
+Scope
+-----
+Extend OCI Landing Zone Studio and Blueprint Factory for verified Du Alloy OC41
+support while retaining the current Orchestrator backend. This is repository
+development, not a customer deployment or a migration of an existing stack.
+Push work only to abikhalilc/lz-studio-new-realms, never to upstream.
+
+Approval workflow
+-----------------
+The user approves each step separately. Present the precise scope and acceptance
+criteria before starting it. After implementation, report the diff and validation
+and wait for approval before starting the next step. Saving this plan does not
+authorize any application changes. Each approved step should have its own commit.
+
+Evidence reviewed
+-----------------
+- A Studio-generated ZIP containing config.jsonnet, seven deployment JSON files,
+  and README.txt. The configuration selects oc19, eu-frankfurt-2, short name str,
+  CIS2, Hub E, prod and preprod, and one project in each environment.
+- A Du-provided Resource Manager template ZIP containing main.tf, variables.tf,
+  schema.yml and solutionMetadata.txt. Customer identifiers and email addresses
+  from either archive are intentionally omitted from this document.
+- The exact referenced Core Landing Zone v1.5.0 source.
+- The exact referenced Orchestrator v2.2.0 source.
+- Studio and generator sources at baseline commit 9992be4.
+
+Confirmed differences
+---------------------
+1. Studio exports Orchestrator JSON inputs; the Du template is a Terraform
+   wrapper around terraform-oci-core-landingzone at v1.5.0. Its variables do not
+   consume Studio's JSON files. These are different deployment contracts.
+2. Studio's generated configuration families are present in Orchestrator
+   v2.2.0 variables.tf and rms-facade/get_configurations.tf. This is a source-level
+   contract check, not proof of OC41 provider or service compatibility.
+3. The Du wrapper takes its region as an input. It does not embed an OC41 realm
+   profile, console URL, service inventory, policy catalog or provider lock.
+4. Studio explicitly supports only oc1 and oc19 in services/regions.ts.
+   gen/config.libsonnet rejects realms absent from gen/constants.libsonnet.
+5. The Studio export selects CIS2; the Du wrapper fixes cis_level to "1".
+   Core v1.5.0 defaults Security Zones and scanning off; Cloud Guard is included
+   for non-free, non-extension deployments. This does not prove service
+   availability or unavailability in OC41.
+6. Studio's export includes three VCNs and twelve subnets. The Du wrapper offers
+   No VCN, Three-Tier VCN, OKE VCN or Exadata Cloud Service VCN. No selected stack
+   variable values or Terraform state were supplied to establish its deployed
+   topology.
+7. Studio's export creates an identity domain; Core v1.5.0 defaults to the
+   existing Default Domain. The Du wrapper does not expose that module setting.
+8. Studio hardcodes cloud.oracle.com for Resource Manager links.
+9. The Studio export contains OC19 Security Zone policy OCIDs and usage-report
+   tenancy references, plus Frankfurt service principals and resource names.
+   A string replacement is not a valid OC41 conversion.
+10. Core v1.5.0 itself contains an OC1 usage-report tenancy constant. Do not
+    treat all inherited Core defaults as verified Alloy values.
+
+Proposed steps, each requiring separate approval
+------------------------------------------------
+Step 1: Establish the verified OC41 profile (documentation only).
+  Confirm region identifier, official region key/short name, realm domain and
+  console URL, home-region constraints, service availability, identity-domain
+  support, Security Zone policies and usage-report configuration.
+  Record evidence and explicit unknowns; request operator-provided information
+  where public sources are insufficient. Do not guess values or enable OC41.
+  Acceptance: each required field is verified with a source or clearly blocked.
+
+Step 2: Add generator realm support and verified realm constants.
+  Main files: gen/constants.libsonnet, gen/config.libsonnet and relevant tests.
+  Verify FSS/Object Storage principals and Security Zone policy identifiers.
+  Use the existing optional usage-report cross-tenancy mechanism only with
+  explicit documentation of any omitted functionality.
+  Acceptance: focused OC41 generation checks pass; no inherited OC1/OC19
+  identifiers appear in OC41 output; existing realm regressions pass.
+  Dependency: Step 1 must establish the constants and supported service scope.
+
+Step 3: Handle differences in service availability and IAM, where needed.
+  Main areas: generator security, observability and IAM builders; Studio model,
+  import/export and validation; diagram inventory and deployment file selection.
+  Specify the exact supported subset before implementation. Do not silently
+  omit controls or describe an unverified profile as CIS compliant.
+  Acceptance: unsupported combinations cannot produce misleading output;
+  diagrams, IAM, generated artifacts and instructions agree.
+  Dependency: Step 1 findings determine whether changes are needed and their scope.
+
+Step 4: Expose OC41 and verified regions in Studio.
+  Main files: src/services/regions.ts, Foundation controls and region tests.
+  Review import/export, saved designs, DR selection, remote peering and manual
+  FastConnect provider-service entry for exact realm/region filtering.
+  Do not invent FastConnect provider-service OCIDs or extra OC41 regions.
+  Acceptance: OC41 selection and round trips work with the verified generator;
+  existing OC1/OC19 selections and stored designs retain their behavior.
+
+Step 5: Make deployment handover realm-aware.
+  Main files: src/services/deployment.ts, ReviewStep.tsx and their tests.
+  Use the verified Du console URL and a tested Orchestrator/provider combination.
+  Preserve private configuration sourcing and consistent two-phase instructions.
+  Consider a Terraform wrapper ZIP only as a separately approved enhancement.
+  Acceptance: OC41 links and exported instructions match the approved deployment
+  contract; OC1/OC19 links and workflows remain valid.
+
+Step 6: Validate and release the approved OC41 scope.
+  Run targeted tests, type checks, lint and production build; verify browser
+  generation and export. Review representative CIS1/CIS2 and hub combinations
+  only where the OC41 profile supports them.
+  Terraform initialization, validation, plan and apply are distinct evidence
+  levels. Any live OC41 validation requires separately approved credentials,
+  resources and deployment scope; never claim it was performed from static checks.
+  Acceptance: documented test results, explicit limitations and approved release.
+
+Conditional extensions, not part of baseline approval
+----------------------------------------------------
+- Existing/default identity-domain selection if required by Du's operating model.
+- A Du CIS1 preset if reproducing the quickstart baseline is required.
+- A separate Core Landing Zone v1.5.0 export backend if exact quickstart output
+  is required; this is larger than adding OC41 to Studio's current backend.
+- Migration of resources managed by an existing Core stack; requires its own
+  state, resource mapping and lifecycle design.
+
+References
+----------
+https://oracle.github.io/nosql-node-sdk/classes/Region.html#ME_DUBAI_3
+https://github.com/oci-landing-zones/terraform-oci-core-landingzone/tree/v1.5.0
+https://github.com/oci-landing-zones/terraform-oci-modules-orchestrator/tree/v2.2.0
+
+Validation of this comparison
+-----------------------------
+Archive contents and Studio JSON syntax were inspected. Relevant generator,
+Studio and pinned Terraform sources were compared. No Terraform initialization,
+validation, plan or apply was performed. No live OC41 inventory was queried.
