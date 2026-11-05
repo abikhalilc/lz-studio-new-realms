@@ -36,7 +36,7 @@ import {
   ORCHESTRATOR_URL as LANDING_ZONE_ORCHESTRATOR_URL,
   ORCHESTRATOR_RELEASE_URL as LANDING_ZONE_ORCHESTRATOR_RELEASE_URL,
   PRIVATE_SOURCE_STEP, RESOURCE_MANAGER_STACKS_URL, completionNetwork,
-  deploymentCliSteps, deploymentHandover, deploymentOutputs, deploymentPrerequisites, deploymentReadme, deploymentSettings, expectedDeploymentFiles,
+  deploymentCliSteps, deploymentVerification, deploymentHandover, deploymentOutputs, deploymentPrerequisites, deploymentReadme, deploymentSettings, expectedDeploymentFiles,
 } from '../../services/deployment';
 import { ErrorNotice } from '../../components/FieldError';
 import type { DiagramModel } from '../../model/types';
@@ -124,6 +124,7 @@ export default function ReviewStep({ designName, getDiagram, diagramReady = true
   const hasSecrets = containsInlineSecrets(model.hybridConnectivity);
   const prerequisites = deploymentPrerequisites(deploymentConfig);
   const handover = deploymentHandover(deploymentConfig);
+  const verification = deploymentVerification(deploymentConfig);
   const stale = result !== null && (!isCurrentOutputSet(result, configText)
     || !Object.hasOwn(result.files, completionNetwork(deploymentConfig)));
   const deployFiles = result && !stale
@@ -290,8 +291,12 @@ export default function ReviewStep({ designName, getDiagram, diagramReady = true
               {deploymentOutputs(deploymentConfig).map((step) => <li key={step}><DeploymentText text={step} /></li>)}
             </ul>
           </div>
+          {verification.length > 0 && <div style={local.guide}>
+            <h3 style={local.guideTitle}>4. Verify deployed settings</h3>
+            <ul style={local.ordered}>{verification.map((step) => <li key={step}>{step}</li>)}</ul>
+          </div>}
           {handover.length > 0 && <div style={local.guide}>
-            <h3 style={local.guideTitle}>4. Complete external setup</h3>
+            <h3 style={local.guideTitle}>{verification.length ? 5 : 4}. Complete external setup</h3>
             <ul style={local.ordered}>{handover.map((step) => <li key={step}>{step}</li>)}</ul>
             {Object.keys(model.hybridConnectivity?.ipsecs ?? {}).length > 0 && <p><a className="guide-link" href="https://docs.oracle.com/en-us/iaas/Content/Network/Tasks/settingupIPsec.htm" target="_blank" rel="noreferrer">Oracle VPN setup</a></p>}
             {(Object.values(model.hybridConnectivity?.fast_connect_virtual_circuits ?? {}).some((circuit) => circuit.provision_fc_virtual_circuit !== false) || Object.keys(model.hybridConnectivity?.cross_connect_groups ?? {}).length > 0) && <p><a className="guide-link" href="https://docs.oracle.com/en-us/iaas/Content/Network/Concepts/fastconnectoverview.htm" target="_blank" rel="noreferrer">Oracle FastConnect setup</a></p>}

@@ -1,7 +1,7 @@
 OC41 Step 3: service and identity review
 Reviewed: 2026-11-05 (Asia/Dubai)
 Application baseline: 087e43b
-Status: review and separately approved 3A/3B complete; 3C remains unapproved.
+Status: review and separately approved implementations 3A/3B/3C complete.
 
 Scope and decision
 ------------------
@@ -158,7 +158,7 @@ Approval-sized implementation sequence
   identify the existing domain. Keep OC41 hidden until the region UI step.
   Acceptance: explicit choice round-trips, private metadata is not committed,
   and missing/inconsistent domain input blocks generation.
-3C (subsequent proposal): deployment-handover clarification for existing Cloud
+3C (approved and implemented): deployment-handover clarification for existing Cloud
   Guard targets and the usage-report limitation. No automatic target adoption.
   Acceptance: UI/ZIP instructions accurately distinguish requested resources,
   existing coverage and untested prerequisites.
@@ -213,6 +213,30 @@ acceptance, saved-value restoration after reload, and Review's selected-domain
 summary and download availability. A screenshot used synthetic identifiers only.
 The preview was stopped afterward. No current customer design, OCI resource,
 Terraform job, group membership or private account configuration was changed.
+
+3C implementation record
+-------------------------
+The user separately approved 3C. Review and exported ZIP README.txt now share
+Home preflight guidance for existing Cloud Guard root targets, including coverage,
+recipes and Terraform ownership. They explain the pinned module's default skip
+behavior and require post-Apply coverage/recipe verification. A matching target
+name is not evidence of ownership; successful Apply does not prove requested
+cloned recipes were attached. No automatic import, adoption or replacement occurs.
+DR instructions leave tenancy-root target management with Home.
+
+OC41-specific instructions disclose the unverified reporting-tenancy OCID and
+omitted cross-tenancy usage-report access. Home retains local usage-report and
+budget permissions; DR has no IAM package and refers reporting checks to Home.
+OC1/OC19 reporting instructions are unchanged. The CLI alternative explicitly
+retains the applicable prerequisites, verification and external setup steps.
+
+Validation: 27 focused deployment/Review tests pass, covering OC1/OC19/OC41,
+Home/DR and both CIS levels for exported instructions, plus shared UI text.
+Full ESLint, TypeScript checks and production build pass. An isolated browser
+preview confirmed the Home preflight and post-Apply guidance, with synthetic
+metadata only; a screenshot was saved and the preview stopped. No generator
+behavior, customer design, OCI resource, Terraform state or realm selector was
+changed. Step 4 and subsequent steps still require separate user approval.
 
 Affected source areas
 ---------------------

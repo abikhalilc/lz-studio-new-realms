@@ -1,7 +1,7 @@
 Du Alloy OC41 support: comparison and approval plan
 Recorded: 2026-11-05
 Status: Steps 1 and 2 complete; Step 2 generator changes tested.
-Step 3 review and approved implementations 3A/3B complete; 3C requires approval.
+Step 3 review and approved implementations 3A/3B/3C complete; Step 4 requires approval.
 Later steps remain unapproved. Studio still exposes only OC1 and OC19.
 
 Scope
@@ -92,7 +92,7 @@ Step 3: Handle differences in service availability and IAM, where needed.
   Approved scope: review OC41 service/identity differences and define required
   adjustments. See OC41-STEP3-REVIEW.txt. This approval does not authorize the
   implementation proposals by itself. 3A was separately approved and implemented;
-  3B was separately approved and implemented; 3C remains unapproved.
+  3B and 3C were separately approved and implemented.
   3A result: optional identity_domain existing_default mode validates a supplied
   domain OCID, emits no domain creation/replication definition, and consistently
   binds base, RPC, OKE, OCVS, ExaDB-D and ExaDB-C@C groups/policies to Default.
@@ -107,6 +107,13 @@ Step 3: Handle differences in service availability and IAM, where needed.
   All 993 Studio tests across 79 files, full lint, type checks and build pass.
   An isolated local browser preview confirmed field feedback, reload retention
   and Review behavior using synthetic values only.
+  3C result: shared Review/ZIP guidance explains existing Cloud Guard root-target
+  coverage, recipes and state ownership before deployment and verification after
+  Apply. OC41-only reporting notes distinguish omitted cross-tenancy grants from
+  retained Home local permissions and DR's absence of IAM. No target adoption,
+  generator behavior change or OC41 selector enablement was introduced.
+  All 27 focused tests, full lint, type checks and build pass. An isolated browser
+  preview verified the guidance with synthetic metadata and was stopped afterward.
   Result: existing Default-domain support is feasible through the pinned
   contract but requires consistent base/workload identity references. Existing
   Cloud Guard target handling needs explicit handover guidance. No blanket

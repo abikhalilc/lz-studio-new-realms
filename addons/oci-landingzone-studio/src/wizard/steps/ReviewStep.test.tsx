@@ -5,6 +5,8 @@ import { emptyLzModel } from '../../model/defaults';
 import { WizardProvider } from '../wizardContext';
 import { emptyHybridConnectivity, newVpn } from '../../services/hybridConnectivity';
 import ReviewStep from './ReviewStep';
+import { buildConfig } from '../../services/lzConfig';
+import { deploymentPrerequisites, deploymentVerification } from '../../services/deployment';
 
 describe('Resource Manager deployment link', () => {
   it('shows the existing-domain choice and blocks download until its OCID is valid', () => {
@@ -142,4 +144,23 @@ it('highlights CLI commands, variables and filenames using the deployment code s
     expect(cli).toContain(`<code class="required-setting">${text}</code>`);
   }
   expect(cli).not.toContain('`');
+});
+
+it.each(['oc1', 'oc19', 'oc41'] as const)('shows shared deployment guidance for %s Home and DR', (realm) => {
+  for (const scope of ['complete', 'regional'] as const) {
+    const model = emptyLzModel();
+    model.foundation.realm = realm;
+    model.foundation.stackScope = scope;
+    const config = buildConfig(model);
+    const html = renderToStaticMarkup(<MemoryRouter><WizardProvider initialModel={model}>
+      <ReviewStep designName="Guidance test" />
+    </WizardProvider></MemoryRouter>);
+    // Account for HTML escaping while checking the full shared guidance.
+    for (const text of [...deploymentPrerequisites(config), ...deploymentVerification(config)]) {
+      if (!text.includes('`')) expect(html).toContain(renderToStaticMarkup(<span>{text}</span>).slice(6, -7));
+    }
+    expect(html.includes('4. Verify deployed settings')).toBe(scope === 'complete');
+    expect(html.includes('OC41 usage reports:')).toBe(realm === 'oc41');
+    expect(html.includes('inspect any existing tenancy-root target')).toBe(scope === 'complete');
+  }
 });

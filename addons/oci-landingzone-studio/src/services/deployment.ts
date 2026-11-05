@@ -39,6 +39,13 @@ export function deploymentPrerequisites(config: LzConfig): string[] {
     ...(config.identity_domain ? [regional
       ? 'Confirm that the Home Region deployment uses the supplied active Default identity domain. DR reuses Home IAM and does not create a domain or groups.'
       : 'Verify that the supplied domain OCID identifies the active Default identity domain in this realm and that the deployment account can manage the requested groups. Check group-name conflicts; this configuration does not adopt existing groups or migrate an existing stack.'] : []),
+    ...(!regional ? [
+      'Cloud Guard: inspect any existing tenancy-root target, its coverage and recipes, and the Terraform state that manages it before applying.',
+      'The pinned Security module defaults to skipping an existing Cloud Guard target with a different name. A matching name does not prove this stack owns it. Review any target import, replacement or ownership change separately.',
+    ] : []),
+    ...(config.realm === 'oc41' ? [regional
+      ? 'OC41 usage reports: this DR package contains no IAM configuration. The Home Region package currently omits cross-tenancy usage-report access until an OC41 reporting-tenancy OCID is verified. Verify reporting access with the Home deployment owner.'
+      : 'OC41 usage reports: this package omits cross-tenancy access to the reporting tenancy because its OCID is not verified. Local usage-report and budget permissions remain. Arrange and review any additional reporting access separately; do not reuse an OC1 or OC19 reporting-tenancy OCID.'] : []),
     ...(regional ? [
       'Deploy the Home Region stack first with matching compartments, project and platform IAM, and governance.'
         + (config.cis_level === 2 ? ' Select this DR region in Home to grant Object Storage access to its encryption keys.' : ''),
@@ -85,6 +92,12 @@ export const HUB_C_BACKEND_STEPS = [
   'Upload the edited `network_backends.json` to the configuration bucket. Use it instead of `network.json` for phase 2 and subsequent updates. Select exactly one network file.',
 ];
 
+export function deploymentVerification(config: LzConfig): string[] {
+  return config.stack_scope === 'regional' ? [] : [
+    "Cloud Guard: verify the deployed tenancy-root target's coverage and attached recipes after Apply. Existing targets skipped by the module retain their current recipe attachments; successful Apply alone does not confirm Studio's requested cloned recipes were attached.",
+  ];
+}
+
 export function deploymentHandover(config: LzConfig): string[] {
   const hybrid = config.hybrid_connectivity;
   const tunnels = Object.values(hybrid?.ipsecs ?? {}).flatMap((vpn) => Object.values(vpn.tunnels_management));
@@ -106,6 +119,7 @@ export function deploymentCliSteps(config: LzConfig): string[] {
   const dependencyNames = dependencies.map((file) => '`' + file + '`').join(' and ');
   const outputNames = outputs.map((file) => '`' + file + '`').join(' and ');
   return [
+    'Complete the applicable prerequisites above before starting. After both phases, complete the deployed-settings verification and external setup where listed.',
     `Download and extract Orchestrator ${ORCHESTRATOR_VERSION}. Use \`rms-facade\` as the working directory, with your approved OCI authentication and Terraform state. Keep the generated JSON files locally instead of uploading them to a bucket.`,
     'In a private `deployment.tfvars` file, set `configuration_source = "file"`, `tenancy_ocid` and `region`. Set `local_config_file_paths` to absolute paths for the phase 1 files listed above.',
     ...(dependencies.length ? [`Set \`local_dependency_file_paths\` to the absolute paths of ${dependencyNames} from the completed ${config.stack_scope === 'regional' ? 'Home' : 'RPC acceptor'} deployment.`] : []),
@@ -119,6 +133,7 @@ export function deploymentReadme(config: LzConfig, files: string[]): string {
   const scope = config.stack_scope === 'regional' ? 'DR' : 'Home Region';
   const [first, second] = deploymentStages(files, completionNetwork(config));
   const handover = deploymentHandover(config);
+  const verification = deploymentVerification(config);
   return [
     `${scope} deployment (${config.region})`,
     `Landing Zone Orchestrator ${ORCHESTRATOR_VERSION}: ${ORCHESTRATOR_RELEASE_URL}`,
@@ -144,7 +159,8 @@ export function deploymentReadme(config: LzConfig, files: string[]): string {
     ...second.files.map((file) => `  ${file}`),
     UPDATE_STEP,
     ...deploymentOutputs(config),
-    ...(handover.length ? ['', '4. Complete external setup', ...handover] : []),
+    ...(verification.length ? ['', '4. Verify deployed settings', ...verification] : []),
+    ...(handover.length ? ['', `${verification.length ? 5 : 4}. Complete external setup`, ...handover] : []),
     '', 'Updating an existing landing zone', EXISTING_DEPLOYMENT_STEP,
     '', 'Alternative: Terraform CLI or CI/CD', ...deploymentCliSteps(config).map((step, i) => `${i + 1}. ${step}`),
     '',

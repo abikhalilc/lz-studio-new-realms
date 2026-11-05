@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DEPLOY_TO_OCI_URL, ORCHESTRATOR_RELEASE_URL, deploymentReadme, deploymentPrerequisites, deploymentSettings, deploymentCliSteps, expectedDeploymentFiles } from './deployment';
+import { DEPLOY_TO_OCI_URL, ORCHESTRATOR_RELEASE_URL, deploymentReadme, deploymentVerification, deploymentPrerequisites, deploymentSettings, deploymentCliSteps, expectedDeploymentFiles } from './deployment';
 import { emptyLzModel } from '../model/defaults';
 import { buildConfig } from './lzConfig';
 import { newPlatform } from './platforms';
@@ -145,5 +145,37 @@ describe('default deployment settings', () => {
     model.hybridConnectivity.ipsecs.office.tunnels_management.tunnel_1.routing = 'BGP';
     const bgp = buildConfig(model);
     expect(deploymentReadme(bgp, expectedDeploymentFiles(bgp))).toContain('For the BGP tunnels');
+  });
+});
+
+describe('existing Cloud Guard and OC41 reporting guidance', () => {
+  it.each(['oc1', 'oc19', 'oc41'] as const)('scopes Home and DR guidance correctly for %s at both CIS levels', (realm) => {
+    for (const cis of [1, 2] as const) {
+      const config = buildConfig(emptyLzModel());
+      config.realm = realm;
+      config.cis_level = cis;
+      const home = deploymentReadme(config, expectedDeploymentFiles(config));
+      expect(home).toContain('inspect any existing tenancy-root target');
+      expect(home).toContain('A matching name does not prove this stack owns it');
+      expect(home).toContain('Existing targets skipped by the module retain their current recipe attachments');
+      expect(home).toContain('successful Apply alone does not confirm');
+      expect(home.indexOf('4. Verify deployed settings')).toBeGreaterThan(home.indexOf('3. Update and apply phase 2'));
+      expect(home.includes('OC41 usage reports:')).toBe(realm === 'oc41');
+      if (realm === 'oc41') {
+        expect(home).toContain('Local usage-report and budget permissions remain');
+        expect(home).toContain('do not reuse an OC1 or OC19 reporting-tenancy OCID');
+      }
+      config.stack_scope = 'regional';
+      const dr = deploymentReadme(config, expectedDeploymentFiles(config));
+      expect(dr).not.toContain('inspect any existing tenancy-root target');
+      expect(dr).not.toContain('Verify deployed settings');
+      expect(deploymentVerification(config)).toEqual([]);
+      expect(dr.includes('OC41 usage reports:')).toBe(realm === 'oc41');
+      if (realm === 'oc41') {
+        expect(dr).toContain('this DR package contains no IAM configuration');
+        expect(dr).toContain('Verify reporting access with the Home deployment owner');
+        expect(dr).not.toContain('Local usage-report and budget permissions remain');
+      }
+    }
   });
 });
