@@ -200,6 +200,31 @@ describe('hybrid FastConnect provider selector', () => {
 });
 
 describe('generator (go-jsonnet wasm)', () => {
+  it.each([1, 2] as const)('renders verified OC41 constants through the browser engine for CIS%s', async (cisLevel) => {
+    const model = emptyLzModel();
+    model.foundation = { ...model.foundation, realm: 'oc41', region: 'me-dubai-3', regionShortName: 'pcz', cisLevel };
+    const out = await generateOutputs(model);
+    const security = JSON.parse(out.files[`security_cis${cisLevel}.json`]);
+    const policies = JSON.parse(out.files['iam.json']).policies_configuration.supplied_policies;
+    const catalog = new Set(readFileSync(resolve('OC41-SECURITY-POLICIES.txt'), 'utf8').split('\n')
+      .filter((line) => line.startsWith('ocid1.securityzonessecuritypolicy.oc41..')));
+    const recipePolicies = Object.values(security.security_zones_configuration.recipes as Record<string, { security_policies_ocids?: string[] }>)
+      .flatMap((recipe) => recipe.security_policies_ocids ?? []);
+
+    expect(new Set(recipePolicies).size).toBe(26);
+    expect(recipePolicies.every((id) => catalog.has(id))).toBe(true);
+    expect(security.cloud_guard_configuration.reporting_region).toBe('me-dubai-3');
+    expect(policies['PCY-COST-ADMIN-KEY'].statements).toEqual([
+      "allow group 'id_lz_common'/'grp-cost-admin' to manage usage-report in tenancy",
+      "allow group 'id_lz_common'/'grp-cost-admin' to manage usage-budgets in tenancy",
+    ]);
+    expect(policies['PCY-SERVICES-ADMIN-KEY'].statements).toContain(
+      'allow service blockstorage, oke, streaming, fssocprod, objectstorage-me-dubai-3 to use keys in tenancy',
+    );
+    expect(out.files['network.json']).toContain('vcn-pcz-lz-hub');
+    expect(JSON.stringify(out.files)).not.toMatch(/\.oc(?:1|19)\./);
+  }, 60_000);
+
   it.each(['abcd', ' fr2', 'fr2 ', 'fr-2'])('rejects a custom region short name over three characters: %j', async (regionShortName) => {
     const model = emptyLzModel();
     model.foundation.regionShortName = regionShortName;

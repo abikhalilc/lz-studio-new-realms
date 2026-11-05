@@ -75,4 +75,19 @@ local security_zone_policy_ocids(realm) = {
     // Extracted from addons/oci-sovereign-landing-zone/security.auto.tfvars.json.
     security_zone_policy_ocids: security_zone_policy_ocids('oc19'),
   },
+
+  oc41: {
+    service_identifiers: {
+      fss: 'fssocprod',
+      objectstorage(region):: 'objectstorage-%s' % region,
+    },
+
+    // No verified OC41 reporting tenancy: omit cross-tenancy report access.
+    // Local usage-report and budget permissions remain in the cost policy.
+    usage_report_tenancy_ocid: null,
+
+    // All 26 distinct suffixes were verified against the OC41 API catalog
+    // on 2026-11-05; see addons/oci-landingzone-studio/OC41-SECURITY-POLICIES.txt.
+    security_zone_policy_ocids: security_zone_policy_ocids('oc41'),
+  },
 }

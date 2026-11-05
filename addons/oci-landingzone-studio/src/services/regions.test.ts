@@ -13,12 +13,14 @@ describe('region short names', () => {
 });
 
 describe('generator-supported realms', () => {
-  it('offers only the realms defined by gen/constants.libsonnet', () => {
+  it('keeps Studio limited to OC1 and OC19 pending OC41 UI approval', () => {
     expect(REALM_OPTIONS.map(({ id }) => id)).toEqual(['oc1', 'oc19']);
     expect(isSupportedRealm('oc1')).toBe(true);
     expect(isSupportedRealm('oc19')).toBe(true);
     expect(isSupportedRealm('oc2')).toBe(false);
     expect(getRegionsForRealm('oc2')).toEqual([]);
+    expect(isSupportedRealm('oc41')).toBe(false);
+    expect(getRegionsForRealm('oc41')).toEqual([]);
   });
 
   it('does not rewrite a current-version record', () => {

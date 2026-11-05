@@ -128,13 +128,20 @@ This small shape creates the shared landing-zone domains plus the `dev` environm
 | `region` | string | No* | `eu-frankfurt-1` | OCI region used by generated configuration. |
 | `region_short_name` | string | No* | `fra` | Short region label used by resource naming. |
 | `dr_region` | string | No | Omitted | DR region whose Object Storage service must be authorized by complete home IAM. Must differ from `region`. |
-| `realm` | string | No | `oc1` | OCI realm. Supported values are `oc1` and `oc19`. |
+| `realm` | string | No | `oc1` | OCI realm. Supported values are `oc1`, `oc19`, and `oc41` (generator support with the limitations below). |
 | `cis_level` | number or string | No | `2` | CIS level to emit: `1` or `2`. |
 | `stack_scope` | `complete` or `regional` | No | `complete` | Declares which resource domains this source config owns. |
 | `security_targets` | array of strings | No | All environments | Environment names that receive Security Zone targeting. |
 | `notification_emails` | object of email arrays | No | Published example address | One-OE Cloud Guard, IAM, Network, and Security topic recipients. |
 
 *`region` and `region_short_name` must be supplied together or omitted together. Explicit `null` values are treated as omitted.
+
+For OC41 (Du Alloy), explicitly pair the selected region with its short name:
+`me-dubai-3` / `pcz`, or `me-dubai-2` / `abr`. The generator omits cross-tenancy
+usage-report access until an OC41 reporting-tenancy OCID is verified; local
+usage-report and budget permissions remain. OC41 is not yet offered in Studio.
+Generator acceptance does not establish provider, identity-domain, DR or
+provisioning compatibility. See the [verified OC41 profile](../oci-landingzone-studio/OC41-VERIFIED-PROFILE.txt).
 
 `security_targets` can contain only names defined under `environments`. Omit it to apply the default targeting to every configured environment.
 

@@ -4,8 +4,8 @@
  * Sources (verified 2026-06):
  *   - https://docs.oracle.com/en-us/iaas/Content/General/Concepts/regions.htm
  *   - https://docs.oracle.com/en-us/iaas/Content/General/Concepts/identifiers.htm
- * Keep this list aligned with gen/constants.libsonnet. The generator currently
- * supports commercial (oc1) and EU Sovereign (oc19) only.
+ * Studio currently exposes commercial (oc1) and EU Sovereign (oc19) only.
+ * OC41 generator constants are verified separately; UI enablement is pending.
  */
 
 export interface Region {

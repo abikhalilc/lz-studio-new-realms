@@ -7,9 +7,11 @@ Disposition
 -----------
 Step 1's acceptance condition is met: required profile fields have evidence or
 an explicit unresolved status. This is not certification of an OC41 deployment.
-No Studio option, generator constant, IAM policy or OCI resource was changed.
-The user must separately approve Step 2; approval cannot substitute for missing
-values or service validation.
+During Step 1, no Studio option, generator constant, IAM policy or OCI resource
+was changed.
+Step 2 was subsequently approved on 2026-11-05: verified generator constants
+and tests, with cross-tenancy usage-report access explicitly omitted. See the
+implementation note below; missing values are not replaced with guesses.
 
 Verified location and access metadata
 -------------------------------------
@@ -125,7 +127,8 @@ Remaining dependencies and decisions
    supplied or retrieved. Never reuse OC1/OC19 reporting-tenancy identifiers.
    The existing IAM builder can omit the cross-tenancy statements when no
    reporting tenancy is configured, but that reduces functionality and requires
-   an explicit reviewed decision; it is not automatic full support.
+   an explicit reviewed decision; it is not automatic full support. The user
+   approved this temporary omission for Step 2 on 2026-11-05.
 2. Identity-domain mode: existing Default domain is verified. Creating an
    additional domain, its license type, quota and API permissions are untested.
    Decide whether Studio should retain its current new-domain model or add a
@@ -156,6 +159,31 @@ All were read-only. No create, update, delete, Terraform or deployment job was
 performed. Initial restricted-network access timed out; the permitted network
 retry succeeded. No application tests are needed for this documentation-only
 step; data assertions and git diff whitespace checks were performed.
+
+Step 2 implementation note (2026-11-05)
+--------------------------------------
+The user approved adding verified OC41 generator constants and tests, with
+unverified cross-tenancy usage-report access temporarily omitted. The OC41
+constants set usage_report_tenancy_ocid to null. The existing IAM builder omits
+the define-tenancy and cross-tenancy endorse statements while retaining local
+usage-report and budget permissions. No reporting tenancy is guessed, and no
+customer tenancy OCID is used as a reporting-service tenancy.
+
+The generator now accepts oc41 through its existing constants-driven realm
+validation. It uses verified OC41 Security Zone policy IDs and documented
+service principals. Studio's realm dropdown remains OC1/OC19 only. Generator
+acceptance is not live deployment support; all remaining provider, identity,
+service-feature and deployment-link dependencies above still apply.
+
+Step 2 validation: all 96 browser generator/region tests pass. Native
+go-jsonnet v0.22.0 CLI checks pass for the new OC41 fixture (PCZ CIS1/CIS2,
+ABR CIS2, PCZ firewalled CIS2), the existing OC19 CIS/default fixture and OC1
+region-default fixture, plus rejection of an unknown realm. Four fixture
+inventory/header checks, TypeScript checks, changed-file ESLint and the
+production build pass. Fixture assertions compare emitted OC41 policy IDs
+against the saved API catalog, verify no OC1/OC19 identifiers leak into OC41
+outputs, and preserve local cost permissions without cross-tenancy grants.
+No Terraform job or OCI resource change was performed.
 
 Sources, reviewed 2026-11-05
 ----------------------------

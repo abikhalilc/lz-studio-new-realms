@@ -1,0 +1,74 @@
+{
+  "abr_cis2": {
+    "cost_policy_statements": [
+      "allow group 'id_lz_common'/'grp-cost-admin' to manage usage-report in tenancy",
+      "allow group 'id_lz_common'/'grp-cost-admin' to manage usage-budgets in tenancy"
+    ],
+    "output_files": [
+      "governance.json",
+      "iam.json",
+      "network.json",
+      "observability_cis2.json",
+      "observability_cis2_pre.json",
+      "security_cis2.json",
+      "security_cis2_pre.json"
+    ],
+    "reporting_region": "me-dubai-2",
+    "verified_environment_policies": 26,
+    "verified_shared_policies": 4
+  },
+  "pcz_cis1": {
+    "cost_policy_statements": [
+      "allow group 'id_lz_common'/'grp-cost-admin' to manage usage-report in tenancy",
+      "allow group 'id_lz_common'/'grp-cost-admin' to manage usage-budgets in tenancy"
+    ],
+    "output_files": [
+      "governance.json",
+      "iam.json",
+      "network.json",
+      "observability_cis1.json",
+      "observability_cis1_pre.json",
+      "security_cis1.json",
+      "security_cis1_pre.json"
+    ],
+    "reporting_region": "me-dubai-3",
+    "verified_environment_policies": 26,
+    "verified_shared_policies": 4
+  },
+  "pcz_cis2": {
+    "cost_policy_statements": [
+      "allow group 'id_lz_common'/'grp-cost-admin' to manage usage-report in tenancy",
+      "allow group 'id_lz_common'/'grp-cost-admin' to manage usage-budgets in tenancy"
+    ],
+    "output_files": [
+      "governance.json",
+      "iam.json",
+      "network.json",
+      "observability_cis2.json",
+      "observability_cis2_pre.json",
+      "security_cis2.json",
+      "security_cis2_pre.json"
+    ],
+    "reporting_region": "me-dubai-3",
+    "verified_environment_policies": 26,
+    "verified_shared_policies": 4
+  },
+  "pcz_firewalled_cis2": {
+    "cost_policy_statements": [
+      "allow group 'id_lz_common'/'grp-cost-admin' to manage usage-report in tenancy",
+      "allow group 'id_lz_common'/'grp-cost-admin' to manage usage-budgets in tenancy"
+    ],
+    "output_files": [
+      "governance.json",
+      "iam.json",
+      "network.json",
+      "observability_cis2.json",
+      "observability_cis2_pre.json",
+      "security_cis2.json",
+      "security_cis2_pre.json"
+    ],
+    "reporting_region": "me-dubai-3",
+    "verified_environment_policies": 26,
+    "verified_shared_policies": 4
+  }
+}

@@ -1,6 +1,7 @@
 Du Alloy OC41 support: comparison and approval plan
 Recorded: 2026-11-05
-Status: Step 1 approved and documented; application changes remain unapproved.
+Status: Steps 1 and 2 complete; Step 2 generator changes tested.
+Later steps remain unapproved. Studio still exposes only OC1 and OC19.
 
 Scope
 -----
@@ -71,6 +72,13 @@ Step 1: Establish the verified OC41 profile (documentation only).
   Acceptance: each required field is verified with a source or clearly blocked.
 
 Step 2: Add generator realm support and verified realm constants.
+  Approval: 2026-11-05, including temporary omission of unverified cross-tenancy
+  usage-report access. OC41 constants use null for the reporting tenancy;
+  existing local usage-report and budget permissions remain.
+  Result: verified constants added; PCZ/ABR, CIS1/CIS2 and firewalled-hub
+  fixture checks pass. Existing OC1/OC19 summaries remain unchanged. The
+  browser generator/region suite passes all 96 tests, and Studio still offers
+  only OC1/OC19. Type checks, changed-file lint and production build pass.
   Main files: gen/constants.libsonnet, gen/config.libsonnet and relevant tests.
   Verify FSS/Object Storage principals and Security Zone policy identifiers.
   Use the existing optional usage-report cross-tenancy mechanism only with

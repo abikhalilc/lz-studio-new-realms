@@ -207,7 +207,7 @@ A landing zone config is a Jsonnet object passed to `landing_zone.libsonnet`:
 {
   region: 'eu-frankfurt-1',            // optional, but must be paired with region_short_name when set
   region_short_name: 'fra',            // optional, but must be paired with region when set
-  realm: 'oc1' | 'oc19',                // optional, defaults to 'oc1'
+  realm: 'oc1' | 'oc19' | 'oc41',        // optional, defaults to 'oc1'
   cis_level: 1 | 2,                     // optional, defaults to 2; config-mode emits only this CIS level
   stack_scope: 'complete' | 'regional', // optional, defaults to complete
   dr_region: 'eu-amsterdam-1',         // optional: DR Object Storage principal in home IAM
