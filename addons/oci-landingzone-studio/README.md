@@ -117,7 +117,7 @@ Studio intentionally does not replace the Landing Zone framework contract. A res
 
 ## 4. Review and deployment
 
-The Studio download is a deployment input, not an automatic deployment. The ZIP contains the design configuration, generated JSON artifacts and a `README.txt` with the matching deployment file lists. Review it in your normal architecture, network, security, and change-management processes. The design source `config.jsonnet`, README and diagram exports are not Terraform deployment inputs.
+The Studio download is a deployment input, not an automatic deployment. The ZIP contains the design configuration, generated JSON artifacts, a per-design `resource-manager-template.zip`, and a `README.txt` with the matching deployment file lists. Review it in your normal architecture, network, security, and change-management processes. The design source `config.jsonnet`, README and diagram exports are not Terraform deployment inputs.
 
 Before deployment:
 
@@ -132,11 +132,11 @@ Use OCI Resource Manager with the generated files in a private Object Storage bu
 Review and the ZIP README follow the same execution order:
 
 1. **Prepare the files.** Unzip, review placeholders and upload the generated JSON files to your private bucket. Complete any Home or RPC acceptor prerequisites first.
-2. **Create and apply phase 1.** Studio's **Deploy to OCI** link opens Create Stack with Orchestrator **v2.2.0** and `configuration_source = "ocibucket"` prefilled. Select `rms-facade` as the working directory and enter `oci_configuration_bucket`. Set `oci_configuration_objects` to the listed phase 1 files: network and selected CIS security/observability `_pre` files, plus IAM and governance for Home. Set any applicable runtime dependency/output variables before creating the stack. Create without applying, then plan, review and apply.
-3. **Update and apply phase 2.** After phase 1 succeeds, edit the same stack's variables. Replace `oci_configuration_objects` with the listed phase 2 files, which replace `_pre` controls with final controls and add generated workload files. For Hub C, prepare the third-party firewalls first and upload the edited `network_backends.json`; use it instead of `network.json` for phase 2 and subsequent updates. Save the variables, then plan, review and apply in the same stack/state.
+2. **Create and apply phase 1.** Studio's **Deploy to OCI** link opens the selected realm's Create Stack page. Upload the included **`resource-manager-template.zip`**, select `terraform-oci-modules-orchestrator-2.2.0/rms-facade` as the working directory, and enter `oci_configuration_bucket`. Keep `configuration_source = "ocibucket"` and select `studio_deployment_phase = "phase1"`. The template automatically selects the listed phase 1 files: network and selected CIS security/observability `_pre` files, plus IAM and governance for Home. Set any applicable runtime dependency/output variables before creating the stack. Create without applying, then plan, review and apply.
+3. **Update and apply phase 2.** After phase 1 succeeds, edit the same stack's variables. Set `studio_deployment_phase = "phase2"`; the template selects the listed phase 2 files, which replace `_pre` controls with final controls and add generated workload files. For Hub C, prepare the third-party firewalls first and upload the edited `network_backends.json`; use it instead of `network.json` for phase 2 and subsequent updates. Save the variables, then plan, review and apply in the same stack/state.
 4. **Complete external setup, when applicable.** Finish the selected router/provider or platform work described in the guide. Instructions appear only for options in that design.
 
-For DR, complete Home first with matching compartments and IAM, and set `save_output = true` on Home. Copy **both** `compartments_output.json` and `network_output.json` from its successful deployment to the private DR bucket and list both in `oci_dependency_objects` on the separate DR stack. Keep these runtime dependencies separate from configuration inputs; they are not included in the Studio ZIP. For CIS2, select the DR region in Home to prepare its Object Storage key grant.
+For DR, complete Home first with matching compartments and IAM, and set `save_output = true` on Home. Copy **both** `compartments_output.json` and `network_output.json` from its successful deployment to the private DR bucket where the separate DR template selects them automatically as dependency objects. Keep these runtime dependencies separate from configuration inputs; they are not included in the Studio ZIP. For CIS2, select the DR region in Home to prepare its Object Storage key grant.
 
 The CLI alternative uses the same pinned `rms-facade`: set `configuration_source = "file"` and supply absolute paths in `local_config_file_paths`, with runtime dependencies in `local_dependency_file_paths` when required. Supply the tenancy and region, initialize, save and review a plan, then apply that plan. Retain the same state when moving to phase 2. Review and the ZIP README include this sequence for customer-controlled CI/CD as well.
 
@@ -173,3 +173,27 @@ Copyright (c) 2026 Oracle and/or its affiliates.
 Licensed under the Universal Permissive License (UPL), Version 1.0.
 
 See [LICENSE](../../LICENSE.txt) for more details.
+
+
+### Studio deployment template
+
+The bundled template is generated from a vendored, checksum-tested Orchestrator
+v2.2.0 archive. Studio adds an explicit deployment-phase selector, automatic
+configuration/dependency object names, a missing-input Plan guard, and an empty
+external Vault dependency correction for the pinned Security module. Provider
+and module source versions are retained. The original archive and license
+notices are preserved under `3rd/orchestrator`; compatibility changes are defined
+and tested in `src/export/resourceManagerTemplate.ts`.
+
+Upload only generated deployment JSON to the private configuration bucket.
+Upload `resource-manager-template.zip` as the Resource Manager Terraform source.
+Do not upload the outer Studio ZIP or the upstream release ZIP in its place.
+Use one template per design/scope and the same stack/state for both phases.
+Home/DR exports contain separate templates with their own file selections.
+Updating Studio does not update an existing cloud stack: replace that stack's
+source with the freshly exported template, review its phase/bucket and run a
+new Plan. Do not switch to phase2 until phase1 Apply has succeeded.
+
+This packaging is not a claim of successful cloud provisioning. A Plan must
+succeed with the intended resource changes before Apply; review costs, IAM,
+public exposure and existing resource ownership. Studio does not run jobs.

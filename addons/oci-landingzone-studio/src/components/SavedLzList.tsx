@@ -12,7 +12,7 @@ import { useNavigate } from 'react-router-dom';
 import { oracle } from '../theme';
 import { createDrLZ, deleteLZ, getLZ, getOutputs, listLZs, saveOutputs, restoreCombinedDesign, type LzMeta } from '../services/lzStore';
 import { buildConfig, serializeConfig } from '../services/lzConfig';
-import { deploymentReadme } from '../services/deployment';
+import { deploymentBundle } from '../export/resourceManagerTemplate';
 import { CONFIG_FILENAME, isCurrentOutputSet } from '../generator/outputNames';
 import { bundleFilename, downloadBlob, zipTextFiles } from '../export/zip';
 import { drRegionOptions } from '../services/disasterRecoveryDesign';
@@ -152,11 +152,24 @@ export default function SavedLzList({ title = 'Your Landing Zones', currentId, o
         ({ config, files } = await generateOutputs(record.model));
       }
       const persisted = saveOutputs(id, { config, files });
-      const downloadable = scope ? Object.fromEntries(Object.entries(files)
-        .filter(([path]) => path.startsWith(`${scope}/`) || (path === 'README.txt' && !Object.hasOwn(files, `${scope}/README.txt`)))
-        .map(([path, body]) => [path.replace(`${scope}/`, ''), body]))
-        : { [CONFIG_FILENAME]: config, ...files,
-          'README.txt': deploymentReadme(buildConfig(record.model), Object.keys(files)) };
+      let downloadable: Record<string, string | Uint8Array>;
+      if (record.disasterRecovery) {
+        const { buildDrFileConfigs } = await import('../services/disasterRecoveryGeneration');
+        const configs = buildDrFileConfigs(record.model, record.disasterRecovery.draft);
+        const scopedBundle = async (selected: 'Home' | 'DR') => {
+          const selectedFiles = Object.fromEntries(Object.entries(files)
+            .filter(([path]) => path.startsWith(`${selected}/`))
+            .map(([path, body]) => [path.slice(selected.length + 1), body]));
+          return deploymentBundle(selected === 'Home' ? configs.home : configs.dr, selectedFiles, selectedFiles[CONFIG_FILENAME]);
+        };
+        if (scope) downloadable = await scopedBundle(scope);
+        else {
+          downloadable = { 'README.txt': files['README.txt'] };
+          for (const selected of ['Home', 'DR'] as const) {
+            for (const [path, body] of Object.entries(await scopedBundle(selected))) downloadable[`${selected}/${path}`] = body;
+          }
+        }
+      } else downloadable = await deploymentBundle(buildConfig(record.model), files, config);
       downloadBlob(bundleFilename(`${record.name}${scope ? `-${scope.toLowerCase()}` : ''}`), zipTextFiles(downloadable));
       setStorageError(persisted.ok ? null : persisted.message ?? 'The configuration was downloaded, but its files could not be retained in browser storage.');
       reload();

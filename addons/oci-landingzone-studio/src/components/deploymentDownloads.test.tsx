@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { MemoryRouter } from 'react-router-dom';
@@ -6,7 +7,7 @@ import { emptyLzModel } from '../model/defaults';
 import { createLZ, getOutputs, saveDisasterRecoveryLZ, saveOutputs } from '../services/lzStore';
 import { createDrDraft } from '../services/disasterRecoveryDesign';
 import { drDesignFingerprint } from '../services/disasterRecoverySavedDesign';
-import { serializeConfig } from '../services/lzConfig';
+import { buildConfig, serializeConfig } from '../services/lzConfig';
 import { generateOutputs } from '../generator/generate';
 import { generateDrFileBundle } from '../services/disasterRecoveryGeneration';
 import { emptyHybridConnectivity, newVpn } from '../services/hybridConnectivity';
@@ -32,11 +33,12 @@ vi.mock('react/jsx-runtime', async (original) => {
 });
 vi.mock('react-router-dom', async (original) => ({ ...await original<typeof import('react-router-dom')>(), useParams: () => ({ id: controls.id }) }));
 vi.mock('../generator/generate', () => ({ generateOutputs: vi.fn() }));
-vi.mock('../services/disasterRecoveryGeneration', () => ({ generateDrFileBundle: vi.fn() }));
+vi.mock('../services/disasterRecoveryGeneration', () => ({ generateDrFileBundle: vi.fn(), buildDrFileConfigs: (model: Parameters<typeof buildConfig>[0]) => ({ home: buildConfig(model), dr: { ...buildConfig(model), stack_scope: 'regional', region: 'eu-amsterdam-1', region_short_name: 'ams' } }) }));
 vi.mock('../export/zip', async (original) => ({ ...await original<typeof import('../export/zip')>(), downloadBlob: vi.fn() }));
 
 beforeEach(() => {
   vi.clearAllMocks();
+  vi.stubGlobal('fetch', vi.fn(async () => new Response(readFileSync('3rd/orchestrator/upstream-v2.2.0.zip'))));
   controls.buttons = [];
   const data = new Map<string, string>();
   Object.assign(globalThis, { window: { localStorage: {
@@ -108,7 +110,8 @@ describe('deployment downloads use the current factory', () => {
 
     expect(generateOutputs).toHaveBeenCalledTimes(2);
     expect(await downloadedFiles()).toEqual({ 'config.jsonnet': config, 'network.json': '{"revision":"fresh"}',
-      'README.txt': expect.stringContaining('configuration_source = "ocibucket"') });
+      'resource-manager-template.zip': expect.any(String),
+      'README.txt': expect.stringContaining('studio_deployment_phase') });
     expect(getOutputs(record.id)?.files).toEqual({ 'network.json': '{"revision":"fresh"}' });
   });
 
@@ -119,15 +122,15 @@ describe('deployment downloads use the current factory', () => {
     saveOutputs(record.id, { config: drDesignFingerprint(model, draft), files: {
       'Home/config.jsonnet': '{}', 'Home/network.json': '{"revision":"old"}', 'DR/config.jsonnet': '{}', 'DR/network.json': '{"revision":"old"}', 'Home/removed.json': '{"revision":"old"}',
     } });
-    vi.mocked(generateDrFileBundle).mockResolvedValue({ 'Home/network.json': '{"revision":"fresh-home"}', 'DR/network.json': '{"revision":"fresh-dr"}' });
+    vi.mocked(generateDrFileBundle).mockResolvedValue({ 'Home/config.jsonnet': '{}', 'DR/config.jsonnet': '{}', 'Home/network.json': '{"revision":"fresh-home"}', 'DR/network.json': '{"revision":"fresh-dr"}' });
     renderToStaticMarkup(<MemoryRouter><SavedLzList /></MemoryRouter>);
 
     await button('Download LZ config')();
-    expect(await downloadedFiles()).toEqual({ 'network.json': '{"revision":"fresh-home"}' });
+    expect(await downloadedFiles()).toMatchObject({ 'resource-manager-template.zip': expect.any(String), 'network.json': '{"revision":"fresh-home"}' });
     await button('Download LZ DR config')();
-    expect(await downloadedFiles()).toEqual({ 'network.json': '{"revision":"fresh-dr"}' });
+    expect(await downloadedFiles()).toMatchObject({ 'resource-manager-template.zip': expect.any(String), 'network.json': '{"revision":"fresh-dr"}' });
     expect(generateDrFileBundle).toHaveBeenCalledTimes(2);
-    expect(getOutputs(record.id)?.files).toEqual({ 'Home/network.json': '{"revision":"fresh-home"}', 'DR/network.json': '{"revision":"fresh-dr"}' });
+    expect(getOutputs(record.id)?.files).toEqual({ 'Home/config.jsonnet': '{}', 'DR/config.jsonnet': '{}', 'Home/network.json': '{"revision":"fresh-home"}', 'DR/network.json': '{"revision":"fresh-dr"}' });
   });
 
   it('uses the scope-specific guide instead of the combined guide for legacy downloads', async () => {
@@ -135,14 +138,15 @@ describe('deployment downloads use the current factory', () => {
     const draft = createDrDraft(model);
     saveDisasterRecoveryLZ({ name: 'Combined', model, draft, sourceLabel: 'Home' });
     vi.mocked(generateDrFileBundle).mockResolvedValue({
+      'Home/config.jsonnet': '{}', 'DR/config.jsonnet': '{}',
       'Home/network.json': '{}', 'Home/README.txt': 'Home instructions',
       'DR/network.json': '{}', 'DR/README.txt': 'DR instructions', 'README.txt': 'Combined instructions',
     });
     renderToStaticMarkup(<MemoryRouter><SavedLzList /></MemoryRouter>);
     await button('Download LZ config')();
-    expect((await downloadedFiles())['README.txt']).toBe('Home instructions');
+    expect((await downloadedFiles())['README.txt']).toContain('Home Region deployment');
     await button('Download LZ DR config')();
-    expect((await downloadedFiles())['README.txt']).toBe('DR instructions');
+    expect((await downloadedFiles())['README.txt']).toContain('DR deployment');
   });
 
   it.each(['Review', 'saved card', 'legacy card'])('retains the previous saved package without downloading it after %s generation fails', async (surface) => {

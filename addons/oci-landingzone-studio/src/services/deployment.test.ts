@@ -51,8 +51,8 @@ describe('default deployment settings', () => {
   it('retains the pinned Orchestrator and private Object Storage default', () => {
     const url = new URL(deploymentConsoleLinks(buildConfig(emptyLzModel()))!.createStackUrl);
     expect(`${url.origin}${url.pathname}`).toBe('https://cloud.oracle.com/resourcemanager/stacks/create');
-    expect(url.searchParams.get('zipUrl')).toBe('https://github.com/oci-landing-zones/terraform-oci-modules-orchestrator/archive/refs/tags/v2.2.0.zip');
-    expect(JSON.parse(url.searchParams.get('zipUrlVariables')!)).toEqual({ configuration_source: 'ocibucket' });
+    expect(url.searchParams.has('zipUrl')).toBe(false);
+    expect(url.searchParams.has('zipUrlVariables')).toBe(false);
     expect(ORCHESTRATOR_RELEASE_URL).toBe('https://github.com/oci-landing-zones/terraform-oci-modules-orchestrator/releases/tag/v2.2.0');
   });
 
@@ -63,13 +63,13 @@ describe('default deployment settings', () => {
     expect(guide).toContain('rms-facade');
     expect(guide).toContain('configuration_source = "ocibucket"');
     expect(guide).toContain('oci_configuration_bucket');
-    expect(guide).toContain('oci_configuration_objects');
+    expect(guide).toContain('studio_deployment_phase');
     const [first, second] = guide.split('3. Update and apply phase 2');
     expect(first).toContain('security_cis2_pre.json');
     expect(second).toContain('security_cis2.json');
     expect(second).not.toContain('security_cis2_pre.json');
     expect(guide).not.toContain('save_output');
-    expect(guide).not.toContain('oci_dependency_objects');
+    expect(guide).not.toContain('as dependency objects');
     expect(guide).not.toContain('private GitHub');
   });
 
@@ -79,9 +79,9 @@ describe('default deployment settings', () => {
     config.remote_peering_connections = { peer };
     expect(deploymentSettings(config).join('\n').replaceAll('`', '')).toContain('save_output = true');
     config.remote_peering_connections = { peer: { ...peer, peer_id: 'RPC-AMS-LZ-PEER-KEY' } };
-    expect(deploymentSettings(config).join('\n').replaceAll('`', '')).toContain('Set oci_dependency_objects to network_output.json');
+    expect(deploymentSettings(config).join('\n').replaceAll('`', '')).toContain('automatically selects network_output.json as dependency objects');
     config.remote_peering_connections = { peer: { ...peer, peer_id: 'ocid1.remotepeeringconnection.oc1..example' } };
-    expect(deploymentSettings(config).join('\n')).not.toContain('oci_dependency_objects');
+    expect(deploymentSettings(config).join('\n')).not.toContain('automatically selects');
     expect(deploymentCliSteps(config).join('\n')).not.toContain('local_dependency_file_paths');
   });
 
@@ -93,12 +93,13 @@ describe('default deployment settings', () => {
     expect(steps).toContain('save_output = true');
     expect(steps).toContain('compartments_output.json');
     expect(steps).toContain('network_output.json');
-    expect(steps).toContain('oci_dependency_objects');
+    expect(steps).toContain('automatically selects');
     expect(steps.includes('encryption keys')).toBe(cis === 2);
     expect(deploymentCliSteps(config).join('\n').replaceAll('`', '')).toContain('local_dependency_file_paths to the absolute paths of compartments_output.json and network_output.json');
     const guide = deploymentReadme(config, expectedDeploymentFiles(config));
     expect(guide.indexOf('On Home, set save_output')).toBeLessThan(guide.indexOf('2. Create and apply phase 1'));
-    expect(guide.indexOf('Set oci_dependency_objects')).toBeLessThan(guide.indexOf('Select Create'));
+    expect(guide.indexOf('as dependency objects')).toBeGreaterThan(0);
+    expect(guide.indexOf('as dependency objects')).toBeLessThan(guide.indexOf('Select Create'));
     expect(guide).not.toContain('Set save_output = true to write runtime outputs');
   });
 
@@ -109,7 +110,7 @@ describe('default deployment settings', () => {
     expect(guide.indexOf('Set save_output = true')).toBeGreaterThan(guide.indexOf('2. Create and apply phase 1'));
     expect(guide.indexOf('Set save_output = true')).toBeLessThan(guide.indexOf('Select Create'));
     expect(guide.indexOf('Retain compartments_output.json and network_output.json')).toBeGreaterThan(guide.indexOf('Save the updated variables'));
-    expect(guide).not.toContain('oci_dependency_objects');
+    expect(guide).not.toContain('as dependency objects');
   });
 
   it('previews OKE and Hub C files and retains the backend alternative in the packaged final phase', () => {
@@ -123,7 +124,7 @@ describe('default deployment settings', () => {
     const second = guide.split('3. Update and apply phase 2')[1];
     expect(second).toContain('  network_backends.json');
     expect(second).not.toContain('  network.json');
-    expect(second.indexOf('Configure the third-party firewall VMs')).toBeLessThan(second.indexOf('Replace oci_configuration_objects'));
+    expect(second.indexOf('Configure the third-party firewall VMs')).toBeLessThan(second.indexOf('Set studio_deployment_phase'));
     expect(second.indexOf('  network_backends.json')).toBeLessThan(second.indexOf('Save the updated variables'));
   });
 
@@ -200,9 +201,9 @@ describe('realm-aware deployment console links', () => {
       expect(stacks.pathname).toBe('/resourcemanager/stacks');
       expect(create.searchParams.get('region')).toBe(region);
       expect(stacks.searchParams.get('region')).toBe(region);
-      expect(create.searchParams.get('zipUrl')).toContain('/tags/v2.2.0.zip');
-      expect(JSON.parse(create.searchParams.get('zipUrlVariables')!)).toEqual({ configuration_source: 'ocibucket' });
-      expect([...create.searchParams.keys()].sort()).toEqual(['region', 'zipUrl', 'zipUrlVariables']);
+      expect(create.searchParams.has('zipUrl')).toBe(false);
+      expect(create.searchParams.has('zipUrlVariables')).toBe(false);
+      expect([...create.searchParams.keys()].sort()).toEqual(['region']);
       const readme = deploymentReadme(config, expectedDeploymentFiles(config));
       expect(readme).toContain(links.createStackUrl);
       expect(readme).toContain(links.stacksUrl);

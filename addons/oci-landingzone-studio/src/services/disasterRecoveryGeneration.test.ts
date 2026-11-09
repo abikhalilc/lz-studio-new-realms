@@ -52,7 +52,7 @@ describe('DR file generation', () => {
     expect(files['Home/README.txt']).toContain('save_output = true');
     expect(files['DR/README.txt']).toContain('DR deployment');
     expect(files['DR/README.txt']).toContain('compartments_output.json and network_output.json');
-    expect(files['DR/README.txt']).toContain('oci_dependency_objects');
+    expect(files['DR/README.txt']).toContain('as dependency objects');
   }, 30000);
 
   it('includes selected EXACS networks, edited subnets and matched RPC peer keys', async () => {

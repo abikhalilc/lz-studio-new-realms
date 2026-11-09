@@ -3,9 +3,9 @@
 import { strToU8, zipSync } from 'fflate';
 
 /** Zip `files` (name → text) and hand back a Blob ready for `URL.createObjectURL`. */
-export function zipTextFiles(files: Record<string, string>): Blob {
+export function zipTextFiles(files: Record<string, string | Uint8Array>): Blob {
   const entries: Record<string, Uint8Array> = {};
-  for (const [name, body] of Object.entries(files)) entries[name] = strToU8(body);
+  for (const [name, body] of Object.entries(files)) entries[name] = typeof body === 'string' ? strToU8(body) : body;
   // level 6 keeps a 500 KB bundle well under a second while compressing JSON hard.
   const zipped = zipSync(entries, { level: 6 });
   return new Blob([zipped as unknown as BlobPart], { type: 'application/zip' });

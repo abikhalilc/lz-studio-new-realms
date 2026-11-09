@@ -20,15 +20,13 @@ export function deploymentConsoleLinks(config: Pick<LzConfig, 'realm' | 'region'
   stacks.searchParams.set('region', config.region);
   const create = new URL('/resourcemanager/stacks/create', base);
   create.searchParams.set('region', config.region);
-  create.searchParams.set('zipUrl', `${ORCHESTRATOR_URL}/archive/refs/tags/${ORCHESTRATOR_VERSION}.zip`);
-  create.searchParams.set('zipUrlVariables', JSON.stringify({ configuration_source: 'ocibucket' }));
   return { stacksUrl: stacks.toString(), createStackUrl: create.toString() };
 }
 
-export const OC41_CONSOLE_STEP = 'OC41 console ZIP prefill and Terraform provider compatibility still require deployment validation. If the link does not populate the source, download the pinned Orchestrator archive from the release link and upload it in Create Stack. Select rms-facade and confirm the private Object Storage settings and region before planning.';
+export const OC41_CONSOLE_STEP = 'Use the resource-manager-template.zip included in this Studio download. OC41 resource provisioning and Resource Manager provider behavior still require deployment validation. Confirm the private Object Storage settings and region before planning.';
 
-export const PRIVATE_SOURCE_STEP = 'Unzip the download and review the generated JSON files. Replace any required placeholders, then upload the JSON files to your private Object Storage bucket.';
-export const APPLY_STEP = 'Select Create without running an apply. From the stack details page, select Plan, review the changes and policy impact, then select Apply. Wait for a successful apply before starting phase 2.';
+export const PRIVATE_SOURCE_STEP = 'Unzip the download and review the generated JSON files. Replace any required placeholders, then upload only the deployment JSON files to your private Object Storage bucket. Keep resource-manager-template.zip for Create Stack; it contains the Terraform code.';
+export const APPLY_STEP = 'Select Create without running an apply. From the stack details page, select Plan, review the changes and policy impact, then select Apply. A plan containing only the region output has not loaded the landing zone; correct the inputs before applying. Wait for a successful apply before starting phase 2.';
 export const UPDATE_STEP = 'Save the updated variables. Run Plan, review the changes, then Apply in the same stack. Wait for a successful apply.';
 export const EXISTING_DEPLOYMENT_STEP = 'Use the existing stack and Terraform state. Retain the complete desired configuration, including resources already managed by that stack.';
 
@@ -77,7 +75,7 @@ export function deploymentPrerequisites(config: LzConfig): string[] {
   ];
 }
 
-function dependencyFiles(config: LzConfig): string[] {
+export function dependencyFiles(config: LzConfig): string[] {
   if (config.stack_scope === 'regional') return ['compartments_output.json', 'network_output.json'];
   return Object.values(config.remote_peering_connections ?? {}).some((peer) => peer.peer_id && !peer.peer_id.startsWith('ocid1.'))
     ? ['network_output.json'] : [];
@@ -93,7 +91,7 @@ export function deploymentSettings(config: LzConfig): string[] {
   const dependencies = dependencyFiles(config);
   const names = dependencies.map((file) => '`' + file + '`').join(' and ');
   return [
-    ...(dependencies.length ? [`Copy ${names} from the completed ${config.stack_scope === 'regional' ? 'Home' : 'RPC acceptor'} deployment to this stack's private configuration bucket. Set \`oci_dependency_objects\` to ${names}. Keep these files out of \`oci_configuration_objects\`.`] : []),
+    ...(dependencies.length ? [`Copy ${names} from the completed ${config.stack_scope === 'regional' ? 'Home' : 'RPC acceptor'} deployment to this stack's private configuration bucket. The Studio template automatically selects ${names} as dependency objects. Keep these files out of \`oci_configuration_objects\`.`] : []),
     ...(outputFiles(config).length ? [`Set \`save_output = true\` to write runtime outputs for the ${config.dr_region ? 'DR stack' : 'RPC requester'}.`] : []),
   ];
 }
@@ -140,12 +138,12 @@ export function deploymentCliSteps(config: LzConfig): string[] {
   return [
     'Complete the applicable prerequisites above before starting. After both phases, complete the deployed-settings verification and external setup where listed.',
     ...(oc41Region ? [`Before starting Terraform, set the process environment variable \`OCI_REGION_METADATA\` to \`${JSON.stringify({ realmKey: 'OC41', realmDomainComponent: 'dutechcloud.ae', regionKey: oc41Region.shortName.toUpperCase(), regionIdentifier: oc41Region.id })}\`. Use the official region key even if you customized the resource naming key. This registers the OC41 endpoint domain for the local provider; it does not configure Resource Manager's runtime.`] : []),
-    `Download and extract Orchestrator ${ORCHESTRATOR_VERSION}. Use \`rms-facade\` as the working directory, with your approved OCI authentication and Terraform state. Keep the generated JSON files locally instead of uploading them to a bucket.`,
+    `Extract the included resource-manager-template.zip (based on Orchestrator ${ORCHESTRATOR_VERSION}). Use \`rms-facade\` as the working directory, with your approved OCI authentication and Terraform state. Keep the generated JSON files locally instead of uploading them to a bucket.`,
     'In a private `deployment.tfvars` file, set `configuration_source = "file"`, `tenancy_ocid` and `region`. Set `local_config_file_paths` to absolute paths for the phase 1 files listed above.',
     ...(dependencies.length ? [`Set \`local_dependency_file_paths\` to the absolute paths of ${dependencyNames} from the completed ${config.stack_scope === 'regional' ? 'Home' : 'RPC acceptor'} deployment.`] : []),
     ...(outputs.length ? [`Set \`save_output = true\`. Retain ${outputNames} written locally for the separate ${config.dr_region ? 'DR stack' : 'RPC requester'}.`] : []),
     'Run `terraform init`, then `terraform plan -var-file=deployment.tfvars -out=deployment.tfplan`. Review the plan, then run `terraform apply deployment.tfplan`.',
-    `After phase 1 succeeds, ${config.hub.kind === 'hub_c' ? 'prepare the firewall backends and edit `network_backends.json` as described above. Then ' : ''}replace \`local_config_file_paths\` with the phase 2 list. Save \`deployment.tfvars\`, then plan, review and apply again using the same commands and state.`,
+    `After phase 1 succeeds, ${config.hub.kind === 'hub_c' ? 'prepare the firewall backends and edit `network_backends.json` as described above. Then ' : ''}set \`studio_deployment_phase = "phase2"\` and replace \`local_config_file_paths\` with the phase 2 list. Save \`deployment.tfvars\`, then plan, review and apply again using the same commands and state.`,
   ];
 }
 
@@ -168,22 +166,22 @@ export function deploymentReadme(config: LzConfig, files: string[]): string {
     `${CONFIG_FILENAME} is the design source. README.txt and diagram exports are review artifacts. Upload only the generated deployment JSON files; do not mix them with published blueprint files.`,
     '',
     '2. Create and apply phase 1',
-    consoleLinks ? `Open ${consoleLinks.createStackUrl} and select rms-facade as the working directory.` : 'Choose a supported realm in Studio before opening Resource Manager.',
+    consoleLinks ? `Open ${consoleLinks.createStackUrl}, upload the included resource-manager-template.zip and select terraform-oci-modules-orchestrator-${ORCHESTRATOR_VERSION.slice(1)}/rms-facade as the working directory.` : 'Choose a supported realm in Studio before opening Resource Manager.',
     ...(consoleLinks ? [`Resource Manager stacks: ${consoleLinks.stacksUrl}`] : []),
-    'Confirm configuration_source = "ocibucket". Enter your bucket in oci_configuration_bucket and set oci_configuration_objects to exactly these phase 1 files:',
+    'Confirm configuration_source = "ocibucket". Enter your bucket in oci_configuration_bucket and select studio_deployment_phase = "phase1". The template automatically selects these files:',
     ...first.files.map((file) => `  ${file}`),
     ...deploymentSettings(config),
     APPLY_STEP,
     '',
     '3. Update and apply phase 2',
     ...(config.hub.kind === 'hub_c' ? HUB_C_BACKEND_STEPS : []),
-    'In the same stack, edit the variables. Replace oci_configuration_objects with exactly these phase 2 files. The final security and observability files replace their _pre counterparts:',
+    'In the same stack, edit the variables. Set studio_deployment_phase = "phase2". The template automatically selects these phase 2 files. The final security and observability files replace their _pre counterparts:',
     ...second.files.map((file) => `  ${file}`),
     UPDATE_STEP,
     ...deploymentOutputs(config),
     ...(verification.length ? ['', '4. Verify deployed settings', ...verification] : []),
     ...(handover.length ? ['', `${verification.length ? 5 : 4}. Complete external setup`, ...handover] : []),
-    '', 'Updating an existing landing zone', EXISTING_DEPLOYMENT_STEP,
+    '', 'Updating an existing landing zone', EXISTING_DEPLOYMENT_STEP, 'To adopt this Studio deployment template, update the existing stack source ZIP and working directory, review its phase and bucket, then run a new Plan. Previously uploaded templates are not updated automatically.',
     '', 'Alternative: Terraform CLI or CI/CD', ...deploymentCliSteps(config).map((step, i) => `${i + 1}. ${step}`),
     '',
   ].join('\n').replaceAll('`', '');

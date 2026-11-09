@@ -1,0 +1,53 @@
+Studio deployment template validation — 2026-11-07
+
+Problem reproduced in child-demo-4: Orchestrator's array form presented an empty
+file selector, producing an output-only Plan when no objects were selected.
+Selecting final files before the network existed caused apply-time flow-log
+for_each keys. A separate Vault invalid-index failure was caused by an empty
+external-dependency map being treated as an existing-vault dependency.
+
+Studio now owns a reproducible per-design compatibility template built from the
+checksum-tested upstream v2.2.0 ZIP, preserving license notices. It contains a
+phase1/phase2 selector, automatic input/dependency file names, a private-source
+and nonempty-input guard, and the empty Vault dependency normalization. The
+upstream artifact is unchanged and provider/module versions are not upgraded.
+The exported template contains no customer JSON, API key or signing material.
+Region and phase file names are literal HCL values, including interpolation
+escaping for imported text. Download packaging checks design changes while the
+template loads, and reports failures instead of silently dropping the template.
+
+Review and saved-design downloads (including legacy Home/DR exports) now include
+resource-manager-template.zip alongside deployment JSON and updated README.
+Console links no longer prefill the unmodified upstream ZIP. Existing stacks
+are not modified automatically, and previously exported packages are snapshots.
+
+Validation: per-scope/CIS/hub phase and dependency assertions, upstream checksum
+and source-difference whitelist, download freshness/secret-retention tests,
+Terraform missing-bucket/valid-phase/invalid-phase checks, TypeScript and lint.
+An isolated browser downloaded the complete nested archive and verified the
+phase lists, Vault correction and ZIP integrity. The exact extracted runtime
+passed Terraform validate with the installed provider/module graph. No cloud
+stack update, Plan, Apply or resource write was performed for this change.
+
+Cloud deployment remains subject to a new reviewed Plan. Live successful
+provisioning, service availability and CIS compliance are not claimed.
+
+Exact user-supplied reference comparison (2026-11-07)
+---------------------------------------------------
+/Users/chrisak/Downloads/terraform-oci-modules-orchestrator-2.2.0.zip is byte-for-byte
+identical to Studio's vendored baseline. SHA256:
+c53f5492ab6e61eda9f3aa80ec85983ff5e40bf78d0e8e4e00d830116f37af71
+The downloaded Studio template differs in five files: rms-facade/schema.yml,
+rms-facade/variables.tf, rms-facade/get_configurations.tf,
+rms-facade/get_dependencies.tf and root security.tf. It adds studio_deployment.tf
+and STUDIO-COMPATIBILITY.txt under rms-facade. All other 62 archive entries are
+byte-identical. Compatibility tests enforce this whitelist and baseline checksum.
+
+Regression-run limits
+----------------------
+The final complete-suite attempt executed 1,040 tests: 1,023 passed and 17
+long-running generator/diagram tests exceeded their time limits. Previous broad
+runs also had timing failures at different generator cases. These runs do not
+establish a clean full-suite pass. No generator logic was changed in this patch.
+All 57 focused export/download/Review/deployment tests pass across four files,
+including the imported-text HCL literal check and local Terraform guards. TypeScript, ESLint and production build pass.

@@ -20,6 +20,7 @@ import { getOutputs, saveOutputs } from '../../services/lzStore';
 // The generator drags in ~0.7 MB of vendored jsonnet, so it is imported on demand
 // inside `run()`. Only its names — a dependency-free module — are imported here.
 import { CONFIG_FILENAME, deploymentStages, isCurrentOutputSet } from '../../generator/outputNames';
+import { deploymentBundle } from '../../export/resourceManagerTemplate';
 import { bundleFilename, downloadBlob, zipTextFiles } from '../../export/zip';
 import { toDrawioXml } from '../../export/toDrawio';
 import { downloadTextFile } from '../../export/download';
@@ -36,7 +37,7 @@ import {
   ORCHESTRATOR_URL as LANDING_ZONE_ORCHESTRATOR_URL,
   ORCHESTRATOR_RELEASE_URL as LANDING_ZONE_ORCHESTRATOR_RELEASE_URL,
   PRIVATE_SOURCE_STEP, completionNetwork,
-  deploymentCliSteps, deploymentVerification, deploymentHandover, deploymentOutputs, deploymentPrerequisites, deploymentReadme, deploymentSettings, expectedDeploymentFiles,
+  deploymentCliSteps, deploymentVerification, deploymentHandover, deploymentOutputs, deploymentPrerequisites, deploymentSettings, expectedDeploymentFiles,
 } from '../../services/deployment';
 import { ErrorNotice } from '../../components/FieldError';
 import type { DiagramModel } from '../../model/types';
@@ -134,11 +135,12 @@ export default function ReviewStep({ designName, getDiagram, diagramReady = true
   const deployStages = deploymentStages(deployFiles, completionNetwork(deploymentConfig));
   const [firstStage, secondStage] = deployStages;
 
-  function downloadResult(runResult: RunResult) {
+  async function downloadResult(runResult: RunResult) {
+    const bundle = await deploymentBundle(buildConfig(model), runResult.files, runResult.config);
+    if (runResult.config !== currentConfig.current) throw new Error('The design changed while preparing the template. Download again to use the current design.');
     downloadBlob(
       bundleFilename(designName),
-      zipTextFiles({ [CONFIG_FILENAME]: runResult.config, ...runResult.files,
-        'README.txt': deploymentReadme(buildConfig(model), Object.keys(runResult.files)) }),
+      zipTextFiles(bundle),
     );
   }
 
@@ -174,7 +176,12 @@ export default function ReviewStep({ designName, getDiagram, diagramReady = true
       return;
     }
     const generated = await run();
-    if (generated && isCurrentOutputSet(generated, currentConfig.current)) downloadResult(generated);
+    if (generated && isCurrentOutputSet(generated, currentConfig.current)) {
+      setBusy(true);
+      try { await downloadResult(generated); }
+      catch (error) { setError(error instanceof Error ? error.message : 'Could not prepare the deployment template.'); }
+      finally { setBusy(false); }
+    }
   }
 
   function downloadDrawio() {
@@ -273,8 +280,8 @@ export default function ReviewStep({ designName, getDiagram, diagramReady = true
           <div style={local.guide}>
             <h3 style={local.guideTitle}>2. Create and apply phase 1</h3>
             <ul style={local.ordered}>
-              <li>{consoleLinks ? <>Open <a className="guide-link" href={consoleLinks.createStackUrl} target="_blank" rel="noreferrer">Deploy to OCI ↗</a> to create a stack using the Landing Zone Orchestrator. Confirm the source and private Object Storage settings. Select <code className="required-setting">rms-facade</code> as the working directory.</> : <>Choose a supported realm in Foundation before opening Resource Manager.</>}</li>
-              <li>In the stack variables, confirm <Setting name="configuration_source" value="ocibucket" />. Enter your bucket name in <Setting name="oci_configuration_bucket" /> and set <Setting name="oci_configuration_objects" /> to exactly these phase 1 files:
+              <li>{consoleLinks ? <>Open <a className="guide-link" href={consoleLinks.createStackUrl} target="_blank" rel="noreferrer">Deploy to OCI ↗</a> and upload <code className="required-setting">resource-manager-template.zip</code> from your Studio download. Confirm the source and private Object Storage settings. Select <code className="required-setting">rms-facade</code> as the working directory.</> : <>Choose a supported realm in Foundation before opening Resource Manager.</>}</li>
+              <li>In the stack variables, confirm <Setting name="configuration_source" value="ocibucket" />. Enter your bucket name in <Setting name="oci_configuration_bucket" /> and choose <Setting name="studio_deployment_phase" value="phase1" />. Studio selects these phase 1 files automatically:
                 <div style={local.fileList}>{firstStage.files.map((file) => <code key={file} className="required-setting">{file}</code>)}</div>
               </li>
               {deploymentSettings(deploymentConfig).map((step) => <li key={step}><DeploymentText text={step} /></li>)}
@@ -285,7 +292,7 @@ export default function ReviewStep({ designName, getDiagram, diagramReady = true
             <h3 style={local.guideTitle}>3. Update and apply phase 2</h3>
             <ul style={local.ordered}>
               {model.network.hubKind === 'hub_c' && HUB_C_BACKEND_STEPS.map((step) => <li key={step}><DeploymentText text={step} /></li>)}
-              <li>In the same stack, edit the variables. Replace <Setting name="oci_configuration_objects" /> with exactly these phase 2 files. The final security and observability files replace their <code className="required-setting">_pre</code> counterparts:
+              <li>In the same stack, edit the variables. Set <Setting name="studio_deployment_phase" value="phase2" />. Studio automatically selects these phase 2 files. The final security and observability files replace their <code className="required-setting">_pre</code> counterparts:
                 <div style={local.fileList}>{secondStage.files.map((file) => <code key={file} className="required-setting">{file}</code>)}</div>
               </li>
               <li>{UPDATE_STEP}</li>

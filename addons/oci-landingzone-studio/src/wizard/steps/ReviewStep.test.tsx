@@ -58,8 +58,8 @@ describe('Resource Manager deployment link', () => {
     const url = new URL(link![1].replace(/&amp;/g, '&'));
 
     expect(`${url.origin}${url.pathname}`).toBe('https://cloud.oracle.com/resourcemanager/stacks/create');
-    expect(url.searchParams.get('zipUrl')).toBe('https://github.com/oci-landing-zones/terraform-oci-modules-orchestrator/archive/refs/tags/v2.2.0.zip');
-    expect(JSON.parse(url.searchParams.get('zipUrlVariables')!)).toEqual({ configuration_source: 'ocibucket' });
+    expect(url.searchParams.has('zipUrl')).toBe(false);
+    expect(url.searchParams.has('zipUrlVariables')).toBe(false);
     expect(markup).not.toContain('Hub routing');
     expect(markup).not.toContain('The Orchestrator resolves OCI Network Firewall route targets');
   });
@@ -99,7 +99,7 @@ it.each([1, 2] as const)('retains Home prerequisites for CIS%d DR with connectiv
   const html = renderToStaticMarkup(<MemoryRouter><WizardProvider initialModel={model}><ReviewStep designName="DR" /></WizardProvider></MemoryRouter>);
   expect(html).toContain('Deploy the Home Region stack first');
   expect(html.replace(/<[^>]*>/g, '')).toContain('compartments_output.json and network_output.json');
-  expect(html).toContain('oci_dependency_objects');
+  expect(html).toContain('automatically selects');
   expect(html.includes('encryption keys')).toBe(cisLevel === 2);
 });
 
@@ -107,7 +107,7 @@ it('lists the Hub C backend network in phase 2 and identifies preliminary file l
   const model = emptyLzModel();
   model.network.hubKind = 'hub_c';
   const html = renderToStaticMarkup(<MemoryRouter><WizardProvider initialModel={model}><ReviewStep designName="Hub C" /></WizardProvider></MemoryRouter>);
-  const phase2 = html.split('exactly these phase 2 files')[1].split('Save the updated variables')[0];
+  const phase2 = html.split('Studio automatically selects these phase 2 files')[1].split('Save the updated variables')[0];
   expect(phase2).toContain('network_backends.json');
   expect(phase2).not.toContain('>network.json</code>');
   expect(html).toContain('File lists are a preview');
@@ -185,8 +185,8 @@ it.each([
     expect(create.searchParams.get('region')).toBe(region);
     expect(new URL(stacksHref).origin).toBe(origin);
     expect(new URL(stacksHref).searchParams.get('region')).toBe(region);
-    expect(JSON.parse(create.searchParams.get('zipUrlVariables')!)).toEqual({ configuration_source: 'ocibucket' });
-    expect(html.includes('OC41 console ZIP prefill and Terraform provider compatibility still require deployment validation')).toBe(realm === 'oc41');
+    expect(create.searchParams.has('zipUrlVariables')).toBe(false);
+    expect(html.includes('OC41 resource provisioning and Resource Manager provider behavior still require deployment validation')).toBe(realm === 'oc41');
   }
 });
 
