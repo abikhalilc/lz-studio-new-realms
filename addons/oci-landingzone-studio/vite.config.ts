@@ -24,7 +24,9 @@ export default defineConfig(({ mode }) => ({
     outDir: 'dist',
   },
   server: {
-    proxy: { '/api': 'http://127.0.0.1:8787' },
+    // Preserve the browser-facing Host so the API can enforce same-origin writes.
+    // Vite's string shorthand implicitly enables changeOrigin and breaks login.
+    proxy: { '/api': { target: 'http://127.0.0.1:8787', changeOrigin: false } },
     port: 5173,
     host: true,
     open: '/',
