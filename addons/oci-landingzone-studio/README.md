@@ -267,3 +267,9 @@ new Plan. Do not switch to phase2 until phase1 Apply has succeeded.
 This packaging is not a claim of successful cloud provisioning. A Plan must
 succeed with the intended resource changes before Apply; review costs, IAM,
 public exposure and existing resource ownership. Studio does not run jobs.
+
+For first-time setup on your own computer, you can instead start the loopback server with
+`STUDIO_LOCAL_SETUP=1 npm run server` and open `/admin/realms` to choose your account.
+This optional setup accepts only direct local requests, rejects forwarded requests, and
+closes permanently once the first account exists. Remote deployments should use
+`npm run admin:create` on the server. No default username or password exists.

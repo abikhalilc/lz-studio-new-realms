@@ -33,18 +33,30 @@ export function openDatabase(path: string) {
   return db;
 }
 
-export async function createAdmin(db: DatabaseSync, username: string, password: string) {
+export async function createAdmin(db: DatabaseSync, username: string, password: string, firstOnly = false) {
   if (!/^[a-zA-Z0-9_.-]{3,64}$/.test(username)) throw new Error('Use a username of 3–64 letters, digits, dots, underscores or hyphens.');
   if (password.length < 12 || password.length > 256) throw new Error('Use a password of 12–256 characters.');
   const salt = randomBytes(16).toString('hex');
   const derived = await scrypt(password, salt, 64) as Buffer;
-  db.prepare('INSERT INTO admins VALUES (?,?,?)').run(username, salt, derived.toString('hex'));
+  db.exec('BEGIN IMMEDIATE');
+  try {
+    if (firstOnly && db.prepare('SELECT username FROM admins LIMIT 1').get()) throw new HttpError(409, 'An administrator already exists. Sign in instead.');
+    db.prepare('INSERT INTO admins VALUES (?,?,?)').run(username, salt, derived.toString('hex'));
+    db.exec('COMMIT');
+  } catch (error) { db.exec('ROLLBACK'); throw error; }
 }
 
 class HttpError extends Error { status: number; constructor(status: number, message: string) { super(message); this.status = status; } }
 
-export function createStudioServer(options: { db: DatabaseSync; secureCookies?: boolean; dist?: string }) {
+export function createStudioServer(options: { db: DatabaseSync; secureCookies?: boolean; dist?: string; allowLocalSetup?: boolean }) {
   const { db } = options;
+  const localSetupAllowed = (req: IncomingMessage) => {
+    const host = new URL('http://' + req.headers.host).hostname;
+    return options.allowLocalSetup === true && !options.secureCookies
+      && ['localhost', '127.0.0.1', '[::1]'].includes(host)
+      && ['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(req.socket.remoteAddress ?? '')
+      && !Object.keys(req.headers).some(key => key === 'forwarded' || key.startsWith('x-forwarded-'));
+  };
   const attempts = new Map<string, { count: number; until: number }>();
   const profiles = () => (db.prepare('SELECT profile FROM realms ORDER BY id').all() as Row[]).map(r => JSON.parse(String(r.profile)) as RealmProfile);
   const session = (req: IncomingMessage) => {
@@ -78,9 +90,19 @@ export function createStudioServer(options: { db: DatabaseSync; secureCookies?: 
         }
         if (path === '/api/realms' && method === 'GET') { send(res, 200, { realms: profiles() }); return; }
         if (path === '/api/admin/session' && method === 'GET') {
-          const user = session(req); send(res, 200, user ? { authenticated: true, username: user.username, csrf: user.csrf } : { authenticated: false, configured: !!db.prepare('SELECT username FROM admins LIMIT 1').get() }); return;
+          const user = session(req); send(res, 200, user ? { authenticated: true, username: user.username, csrf: user.csrf } : { authenticated: false, configured: !!db.prepare('SELECT username FROM admins LIMIT 1').get(), setupAllowed: localSetupAllowed(req) }); return;
+        }
+        if (path === '/api/admin/setup' && method === 'POST') {
+          if (!localSetupAllowed(req)) throw new HttpError(403, 'Local administrator setup is not enabled. Use npm run admin:create on the server.');
+          if (db.prepare('SELECT username FROM admins LIMIT 1').get()) throw new HttpError(409, 'An administrator already exists. Sign in instead.');
+          const input = await body(req);
+          if (typeof input.username !== 'string' || typeof input.password !== 'string') throw new HttpError(400, 'Enter a username and password.');
+          try { await createAdmin(db, input.username, input.password, true); }
+          catch (error) { if (error instanceof HttpError) throw error; throw new HttpError(400, (error as Error).message); }
+          send(res, 201, { configured: true }); return;
         }
         if (path === '/api/admin/login' && method === 'POST') {
+          if (!db.prepare('SELECT username FROM admins LIMIT 1').get()) throw new HttpError(409, 'No administrator account exists yet. Run npm run admin:create in the Studio server directory, then reload this page.');
           const ip = req.socket.remoteAddress ?? 'unknown'; const now = Date.now();
           for (const [key, value] of attempts) if (value.until <= now) attempts.delete(key);
           if (attempts.size >= 10_000 || (attempts.get(ip)?.count ?? 0) >= 5) throw new HttpError(429, 'Too many sign-in attempts. Try again in 15 minutes.');

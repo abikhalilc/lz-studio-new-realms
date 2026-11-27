@@ -4,7 +4,7 @@ import { loadRealmCatalog, realmCatalogSnapshot, subscribeRealmCatalog } from '.
 import { validateRealm, type RealmProfile } from '../../shared/realm';
 import './realmAdmin.css';
 
-interface Session { authenticated: boolean; username?: string; csrf?: string; configured?: boolean }
+interface Session { authenticated: boolean; username?: string; csrf?: string; configured?: boolean; setupAllowed?: boolean }
 interface AuditEvent { at: string; username: string; action: string; realm_id: string }
 const empty = (): RealmProfile => ({ id: '', label: '', apiDomain: '', consoleUrl: '', regions: [{ id: '', shortName: '' }],
   fileStorageService: '', objectStorageServicePrefix: 'objectstorage-', usageReportTenancy: null,
@@ -26,6 +26,8 @@ export default function RealmAdmin() {
   const [error, setError] = useState(''); const [notice, setNotice] = useState(''); const [busy, setBusy] = useState(false);
   const [editing, setEditing] = useState<RealmProfile | null>(null); const [creating, setCreating] = useState(false);
   const [deleting, setDeleting] = useState<RealmProfile | null>(null); const [events, setEvents] = useState<AuditEvent[]>([]);
+  const [confirmation, setConfirmation] = useState('');
+  const setup = session?.configured === false && session.setupAllowed === true;
   const [username, setUsername] = useState(''); const [password, setPassword] = useState('');
   const editorTitle = useRef<HTMLHeadingElement>(null); const editorOpen = editing !== null;
   useEffect(() => {
@@ -38,7 +40,12 @@ export default function RealmAdmin() {
       ...(data === undefined ? {} : { body: JSON.stringify(data) }) });
     if (!response.headers.get('content-type')?.includes('application/json')) throw new Error('Shared administration requires the Studio server. See the setup instructions in the Studio README.');
     const result = await response.json();
-    if (!response.ok) { if (response.status === 401) setSession(null); throw new Error(result.error ?? 'Request failed.'); }
+    if (!response.ok) {
+      // Keep an anonymous session object so a rejected password or expired
+      // session does not permanently disable the sign-in button.
+      if (response.status === 401) setSession(current => ({ authenticated: false, configured: current?.configured }));
+      throw new Error(result.error ?? 'Request failed.');
+    }
     return result;
   }
   useEffect(() => {
@@ -54,7 +61,15 @@ export default function RealmAdmin() {
   }, [session, notice]);
   async function login(event: FormEvent) {
     event.preventDefault(); setBusy(true); setError('');
-    try { setSession(await request('login', 'POST', { username, password }) as Session); setPassword(''); }
+    try {
+      if (setup) {
+        if (password !== confirmation) throw new Error('Passwords do not match.');
+        await request('setup', 'POST', { username, password });
+        setSession({ authenticated: false, configured: true }); setConfirmation('');
+        setNotice('Administrator created. Sign in with your new credentials.');
+      } else setSession(await request('login', 'POST', { username, password }) as Session);
+      setPassword('');
+    }
     catch (e) { setError((e as Error).message); setPassword(''); } finally { setBusy(false); }
   }
   async function save(event: FormEvent) {
@@ -74,15 +89,17 @@ export default function RealmAdmin() {
 
   return <div className="realm-admin"><TopBar /><main>
     <div className="realm-heading"><div><p className="realm-eyebrow">ADMINISTRATION</p><h1>Realms</h1><p>Manage the OCI clouds available across Studio.</p></div>
-      {session?.authenticated && <div className="realm-actions"><span>Signed in as <strong>{session.username}</strong></span><button disabled={busy} onClick={() => { setBusy(true); void request('logout', 'POST', {}).then(() => { setSession(null); setEditing(null); }).catch(e => setError((e as Error).message)).finally(() => setBusy(false)); }}>Sign out</button></div>}
+      {session?.authenticated && <div className="realm-actions"><span>Signed in as <strong>{session.username}</strong></span><button disabled={busy} onClick={() => { setBusy(true); void request('logout', 'POST', {}).then(() => { setSession({ authenticated: false, configured: true }); setEditing(null); }).catch(e => setError((e as Error).message)).finally(() => setBusy(false)); }}>Sign out</button></div>}
     </div>
     {error && <div className="realm-error" role="alert">{error}</div>}{notice && <div className="realm-success" role="status">{notice}</div>}
     {loading ? <p role="status">Checking administrator session…</p> : !session?.authenticated ? <section className="realm-panel realm-login">
-      <h2>Administrator sign in</h2><p>Realm changes are shared with everyone using this Studio server.</p>
-      {session?.configured === false && <p className="realm-setup">Create the first administrator in the server terminal with <code>npm run admin:create</code>, then sign in here. No default password is provided.</p>}
+      <h2>{setup ? 'Create administrator' : 'Administrator sign in'}</h2><p>Realm changes are shared with everyone using this Studio server.</p>
+      {session?.configured === false && !setup && <p className="realm-setup">Create the first administrator in the server terminal with <code>npm run admin:create</code>, then sign in here. No default password is provided.</p>}
+      {setup && <p>Create the first shared administrator account. Choose a password of 12–256 characters and save it in your password manager.</p>}
       <form onSubmit={login}><label>Username<input autoComplete="username" required value={username} onChange={e => setUsername(e.target.value)} /></label>
-        <label>Password<input type="password" autoComplete="current-password" required value={password} onChange={e => setPassword(e.target.value)} /></label>
-        <button className="primary" disabled={busy || !session} type="submit">{busy ? 'Signing in…' : 'Sign in'}</button></form>
+        <label>Password<input type="password" autoComplete={setup ? 'new-password' : 'current-password'} minLength={setup ? 12 : undefined} maxLength={256} required value={password} onChange={e => setPassword(e.target.value)} /></label>
+        {setup && <label>Confirm password<input type="password" autoComplete="new-password" required value={confirmation} onChange={e => setConfirmation(e.target.value)} /></label>}
+        <button className="primary" disabled={busy || !session} type="submit">{busy ? 'Please wait…' : setup ? 'Create administrator' : 'Sign in'}</button></form>
     </section> : <>
       <section className="realm-panel"><div className="realm-heading"><div><h2>Shared realm catalog</h2><p>{realms.length} realms · changes are recorded in the activity log</p></div><button className="primary" disabled={busy || !!editing} onClick={() => { setCreating(true); setEditing(empty()); setError(''); setNotice(''); }}>Add realm</button></div>
         <div className="realm-table-wrap"><table><thead><tr><th>Realm</th><th>API domain</th><th>Regions</th><th>Status</th><th>Actions</th></tr></thead><tbody>

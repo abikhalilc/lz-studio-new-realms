@@ -63,3 +63,39 @@ it('persists accounts and catalog edits across restart without reseeding deleted
     second.close(); expect(statSync(path).mode & 0o777).toBe(0o600);
   } finally { rmSync(dir, { recursive: true, force: true }); }
 });
+
+it('explains missing account setup and accepts an account created while the server is running', async () => {
+  const setupDb = openDatabase(':memory:'); const setupServer = createStudioServer({ db: setupDb });
+  try {
+    await new Promise<void>((accept, reject) => { setupServer.once('error', reject); setupServer.listen(0, '127.0.0.1', accept); });
+    const setupOrigin = `http://127.0.0.1:${(setupServer.address() as AddressInfo).port}`;
+    const login = () => fetch(setupOrigin + '/api/admin/login', { method: 'POST', headers: { Origin: setupOrigin, 'Content-Type': 'application/json' }, body: JSON.stringify({ username: 'new-admin', password }) });
+    const missing = await login();
+    expect(missing.status).toBe(409); expect((await missing.json()).error).toContain('npm run admin:create');
+    await createAdmin(setupDb, 'new-admin', password);
+    expect((await login()).status).toBe(200);
+  } finally { await new Promise<void>(accept => setupServer.close(() => accept())); setupDb.close(); }
+});
+
+it('allows explicitly enabled local setup once and rejects forwarded or cross-origin setup', async () => {
+  const localDb = openDatabase(':memory:'); const localServer = createStudioServer({ db: localDb, allowLocalSetup: true });
+  try {
+    await new Promise<void>(accept => localServer.listen(0, '127.0.0.1', accept));
+    const url = `http://127.0.0.1:${(localServer.address() as AddressInfo).port}`;
+    const setup = (headers = {}, value = password) => fetch(url + '/api/admin/setup', { method: 'POST', headers: { Origin: url, 'Content-Type': 'application/json', ...headers }, body: JSON.stringify({ username: 'local-admin', password: value }) });
+    expect((await (await fetch(url + '/api/admin/session')).json()).setupAllowed).toBe(true);
+    expect((await setup({ Origin: 'https://attacker.test' })).status).toBe(403);
+    expect((await setup({ 'X-Forwarded-For': '127.0.0.1' })).status).toBe(403);
+    expect((await setup({}, 'short')).status).toBe(400);
+    const simultaneous = await Promise.all([setup(), setup()]);
+    expect(simultaneous.map(r => r.status).sort()).toEqual([201, 409]);
+    expect(localDb.prepare('SELECT username FROM admins').all()).toHaveLength(1);
+    expect((await setup()).status).toBe(409);
+    const login = await fetch(url + '/api/admin/login', { method: 'POST', headers: { Origin: url, 'Content-Type': 'application/json' }, body: JSON.stringify({ username: 'local-admin', password }) });
+    expect(login.status).toBe(200);
+  } finally { await new Promise<void>(accept => localServer.close(() => accept())); localDb.close(); }
+});
+
+it('keeps browser setup disabled by default', async () => {
+  expect((await api('/api/admin/setup', 'POST', { username: 'another-admin', password })).status).toBe(403);
+});
