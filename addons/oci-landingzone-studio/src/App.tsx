@@ -7,9 +7,11 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { getRouterBasename } from './services/pagesBase';
 import './index.css';
 import { ErrorNotice } from './components/FieldError';
+import RealmCatalogGate from './components/RealmCatalogGate';
 
 const Dashboard = React.lazy(() => import('./pages/Dashboard'));
 const WizardShell = React.lazy(() => import('./pages/WizardShell'));
+const RealmAdmin = React.lazy(() => import('./pages/RealmAdmin'));
 
 const routeFallback = (
   <div role="status" style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', fontFamily: 'system-ui, sans-serif' }}>
@@ -55,15 +57,16 @@ class AppErrorBoundary extends React.Component<React.PropsWithChildren, ErrorBou
 export default function App() {
   return (
     <AppErrorBoundary>
-      <Router basename={getRouterBasename(import.meta.env.BASE_URL)}>
+      <RealmCatalogGate><Router basename={getRouterBasename(import.meta.env.BASE_URL)}>
         <React.Suspense fallback={routeFallback}>
           <Routes>
             <Route path="/"       element={<Dashboard />} />
             <Route path="/lz/:id" element={<WizardShell />} />
+            <Route path="/admin/realms" element={<RealmAdmin />} />
             <Route path="*"       element={<Navigate to="/" replace />} />
           </Routes>
         </React.Suspense>
-      </Router>
+      </Router></RealmCatalogGate>
     </AppErrorBoundary>
   );
 }

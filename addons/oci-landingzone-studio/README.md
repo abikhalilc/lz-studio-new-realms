@@ -117,6 +117,59 @@ Studio intentionally does not replace the Landing Zone framework contract. A res
 
 ## 4. Review and deployment
 
+### Shared administration
+
+Open **Administration** in the top navigation, or `/admin/realms`. A standalone
+administrator account can create, edit, disable and delete realms, including
+their regions, console/API domains, service principals and Security Zone policy
+OCIDs. Changes are shared by every browser using the same Studio server.
+The original OC1, OC19 and OC41 catalog is seeded once from
+[`gen/realm-defaults.json`](../../gen/realm-defaults.json).
+
+From this add-on directory, use Node.js **22.18 or later**:
+
+```sh
+npm install
+npm run admin:create
+npm run server
+```
+
+Administrator creation prompts for a username and a hidden password (at least
+12 characters). There is no default account/password. Keep the server running.
+Building or starting the frontend also needs the Go/WASM toolchain described in
+the [runtime requirements](3rd/go-jsonnet/README.md#runtime-requirements).
+For development, run `npm run dev` in another terminal; its `/api` proxy uses the
+server on port 8787. For a built installation, run `npm run build` and open
+`http://127.0.0.1:8787/admin/realms`; the server serves the frontend and API together.
+
+The server defaults to `127.0.0.1:8787`. `STUDIO_API_HOST`, `STUDIO_API_PORT` and
+`STUDIO_DATA_DIR` configure its binding and database directory. To share it over
+a network, operate one server behind an HTTPS reverse proxy on the same origin,
+preserve the Host header, and set `STUDIO_SECURE_COOKIES=1`. Use the same data
+directory for `admin:create` and the running server. Pure static hosting retains
+the built-in catalog but cannot provide shared administration.
+
+The private SQLite database defaults to `.studio-data/studio.sqlite`, is excluded
+from Git, and contains realms, salted scrypt password hashes, expiring hashed
+sessions, and the realm change audit trail. Back up this directory with your
+normal server backups (stop the server before a filesystem copy). Session cookies
+are HttpOnly and SameSite Strict; writes require same-origin and CSRF checks.
+Sign-in attempts are rate limited. No OCI credentials are stored by this feature.
+
+Realm IDs are immutable. Disabled/deleted realms disappear from new-design
+choices and block new exports for saved designs using them; designs are not
+silently moved to another realm. At least one enabled realm must remain. The
+first configured region is the new-design default. Other browsers refresh the
+catalog when focused, and export refreshes it before generation. Concurrent edits
+are checked by revision, and changes are recorded with the administrator name.
+
+Administrators must supply verified realm-specific service principals and policy
+OCIDs. Cross-realm policy IDs and invalid console origins are rejected. Leave the
+usage-report tenancy blank when unverified. An administrated profile is embedded
+as `realm_profile` in exported config, keeping CLI generation portable. It does
+not change previously downloaded ZIPs, uploaded bucket objects, existing ORM
+stacks or OCI resources, and it does not certify service availability.
+
 Studio exports explicitly omit the example hub public load balancer and its
 test backends. Real application ingress requires workload endpoints and TLS
 configuration. Audit export is configured active in both phases.

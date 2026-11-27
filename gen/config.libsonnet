@@ -7,6 +7,7 @@ local subnet_utils = import 'lib/subnets.libsonnet';
 local validation = import 'lib/validation.libsonnet';
 local identity_domains = import 'lib/identity_domain.libsonnet';
 local deployment_settings = import 'lib/deployment_settings.libsonnet';
+local realm_profiles = import 'lib/realm_profile.libsonnet';
 local hybrid_contract = import 'addons/oci-hybrid-connectivity/config.libsonnet';
 
 {
@@ -197,7 +198,8 @@ local hybrid_contract = import 'addons/oci-hybrid-connectivity/config.libsonnet'
     local realm =
       if std.objectHas(config, 'realm') && config.realm != null then config.realm
       else 'oc1';
-    assert std.member(supported_realms, realm) :
+    local realm_profile = realm_profiles.normalize(if std.objectHas(config, 'realm_profile') then config.realm_profile else null, realm);
+    assert std.member(supported_realms, realm) || realm_profile != null :
            'config.realm must be one of: %s' % std.join(', ', supported_realms);
     local identity_domain = identity_domains.normalize(
       if std.objectHas(config, 'identity_domain') then config.identity_domain else null,
@@ -489,6 +491,7 @@ local hybrid_contract = import 'addons/oci-hybrid-connectivity/config.libsonnet'
       region: region,
       region_short_name: region_short_name,
       realm: realm,
+      [if realm_profile != null then 'realm_profile']: realm_profile,
       deployment_settings: deployment_settings.normalize(
         if std.objectHas(config, 'deployment_settings') then config.deployment_settings else null
       ),

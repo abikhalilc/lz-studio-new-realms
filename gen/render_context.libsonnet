@@ -49,6 +49,7 @@
 //   output documents or own profile-specific publication logic.
 local cfg_lib = import 'config.libsonnet';
 local constants = import 'constants.libsonnet';
+local realm_profiles = import 'lib/realm_profile.libsonnet';
 local extensions = import 'extensions.libsonnet';
 local naming = import 'naming.libsonnet';
 local platforms = import 'platforms.libsonnet';
@@ -79,7 +80,7 @@ local common = import 'hub/hub_common.libsonnet';
       config: config,
       n: n,
       topo: topo,
-      realm_constants: constants[config.realm],
+      realm_constants: if std.objectHas(config, 'realm_profile') then realm_profiles.constants(config.realm_profile) else constants[config.realm],
       spoke_envs: spoke_envs,
       all_platform_entries: all_platform_entries,
       extension_entries: platform_state.extension_entries,

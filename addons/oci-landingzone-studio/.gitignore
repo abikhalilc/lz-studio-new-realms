@@ -8,6 +8,9 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
+.studio-data/
+*.sqlite
+*.sqlite-*
 dist
 dist-ssr
 *.local

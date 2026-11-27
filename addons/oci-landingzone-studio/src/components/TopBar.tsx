@@ -46,6 +46,7 @@ export default function TopBar({ center, right, onEmptySpaceClick }: {
       </Link>
       <span style={css.divider} />
       <span style={css.sub}>OCI Landing Zone Studio</span>
+      {!center && <Link to="/admin/realms" style={{ color: '#fff', fontSize: 13 }}>Administration</Link>}
       <span
         className="studio-topbar-debug-space"
         style={css.debugSpace}

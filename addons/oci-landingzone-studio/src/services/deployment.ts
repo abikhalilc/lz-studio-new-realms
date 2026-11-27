@@ -1,20 +1,16 @@
 import { CONFIG_FILENAME, deploymentStages } from '../generator/outputNames';
 import type { LzConfig } from './lzConfig';
 import { findRegion } from './regions';
+import { getRealmProfile } from './realmCatalog';
 
 export const ORCHESTRATOR_VERSION = 'v2.2.0';
 export const ORCHESTRATOR_URL = 'https://github.com/oci-landing-zones/terraform-oci-modules-orchestrator';
 export const ORCHESTRATOR_RELEASE_URL = `${ORCHESTRATOR_URL}/releases/tag/${ORCHESTRATOR_VERSION}`;
 // OC41 evidence: OC41-VERIFIED-PROFILE.txt. OC19 console base:
 // https://docs.oracle.com/en-us/iaas/Content/sovereign-cloud/eu-sovereign-cloud.htm
-const CONSOLE_BASE_URLS: Partial<Record<string, string>> = {
-  oc1: 'https://cloud.oracle.com',
-  oc19: 'https://cloud.oracle.eu',
-  oc41: 'https://cloud.dutechcloud.ae',
-};
-
-export function deploymentConsoleLinks(config: Pick<LzConfig, 'realm' | 'region'>): { stacksUrl: string; createStackUrl: string } | null {
-  const base = Object.hasOwn(CONSOLE_BASE_URLS, config.realm) ? CONSOLE_BASE_URLS[config.realm] : undefined;
+export function deploymentConsoleLinks(config: Pick<LzConfig, 'realm' | 'region' | 'realm_profile'>): { stacksUrl: string; createStackUrl: string } | null {
+  const profile = config.realm_profile ?? getRealmProfile(config.realm);
+  const base = profile?.enabled ? profile.consoleUrl : undefined;
   if (!base) return null;
   const stacks = new URL('/resourcemanager/stacks', base);
   stacks.searchParams.set('region', config.region);
@@ -140,12 +136,13 @@ export function deploymentHandover(config: LzConfig): string[] {
 export function deploymentCliSteps(config: LzConfig): string[] {
   const dependencies = dependencyFiles(config);
   const outputs = outputFiles(config);
-  const oc41Region = config.realm === 'oc41' ? findRegion('oc41', config.region) : null;
+  const realmProfile = config.realm_profile ?? getRealmProfile(config.realm);
+  const oc41Region = config.realm === 'oc41' || config.realm_profile ? (realmProfile?.regions.find(r => r.id === config.region) ?? findRegion(config.realm, config.region)) : null;
   const dependencyNames = dependencies.map((file) => '`' + file + '`').join(' and ');
   const outputNames = outputs.map((file) => '`' + file + '`').join(' and ');
   return [
     'Complete the applicable prerequisites above before starting. After both phases, complete the deployed-settings verification and external setup where listed.',
-    ...(oc41Region ? [`Before starting Terraform, set the process environment variable \`OCI_REGION_METADATA\` to \`${JSON.stringify({ realmKey: 'OC41', realmDomainComponent: 'dutechcloud.ae', regionKey: oc41Region.shortName.toUpperCase(), regionIdentifier: oc41Region.id })}\`. Use the official region key even if you customized the resource naming key. This registers the OC41 endpoint domain for the local provider; it does not configure Resource Manager's runtime.`] : []),
+    ...(oc41Region ? [`Before starting Terraform, set the process environment variable \`OCI_REGION_METADATA\` to \`${JSON.stringify({ realmKey: config.realm.toUpperCase(), realmDomainComponent: realmProfile?.apiDomain, regionKey: oc41Region.shortName.toUpperCase(), regionIdentifier: oc41Region.id })}\`. Use the official region key even if you customized the resource naming key. This registers the ${config.realm.toUpperCase()} endpoint domain for the local provider; it does not configure Resource Manager's runtime.`] : []),
     `Extract the included resource-manager-template.zip (based on Orchestrator ${ORCHESTRATOR_VERSION}). Use \`rms-facade\` as the working directory, with your approved OCI authentication and Terraform state. Keep the generated JSON files locally instead of uploading them to a bucket.`,
     'In a private `deployment.tfvars` file, set `configuration_source = "file"`, `tenancy_ocid` and `region`. Set `local_config_file_paths` to absolute paths for the phase 1 files listed above.',
     ...(dependencies.length ? [`Set \`local_dependency_file_paths\` to the absolute paths of ${dependencyNames} from the completed ${config.stack_scope === 'regional' ? 'Home' : 'RPC acceptor'} deployment.`] : []),

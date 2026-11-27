@@ -1,0 +1,19 @@
+.realm-admin { min-height:100vh; background:#f5f4f0; color:#292724; font-family:"Oracle Sans","Helvetica Neue",sans-serif }
+.realm-admin main { max-width:1150px; margin:auto; padding:40px 24px 70px }
+.realm-heading { display:flex; justify-content:space-between; align-items:center; gap:24px; margin-bottom:24px }
+.realm-heading h1 { font-size:34px; margin:4px 0 10px; letter-spacing:-.7px }.realm-heading h2 { margin:0 0 8px }
+.realm-eyebrow { font-size:11px; font-weight:700; letter-spacing:1.8px; color:#77694d }
+.realm-admin p { color:#605b53; line-height:1.6 }.realm-panel { background:white; border:1px solid #dedad2; border-radius:8px; padding:28px; margin:24px 0; box-shadow:0 2px 5px #312d2310 }
+.realm-login { max-width:460px; margin:50px auto }.realm-admin label { display:flex; flex-direction:column; gap:8px; font-size:14px; font-weight:600; margin:16px 0 }
+.realm-admin input,.realm-admin textarea { font:inherit; font-weight:400; border:1px solid #aaa297; border-radius:4px; padding:10px 12px; box-sizing:border-box; width:100%; background:white; color:#292724 }
+.realm-admin textarea { font:12px/1.6 monospace; resize:vertical }.realm-admin input:read-only { background:#efeeeb }.realm-admin small { display:block; font-size:12px; color:#69645c; font-weight:400; margin-top:5px }
+.realm-admin button { font:inherit; font-size:13px; font-weight:600; padding:9px 15px; border:1px solid #b6b0a6; border-radius:4px; background:white; color:#34312b; cursor:pointer }.realm-admin button.primary { background:#343c32; border-color:#343c32; color:white }.realm-admin button.danger { color:#aa3025 }.realm-admin button:disabled { opacity:.5; cursor:default }
+.realm-admin :focus-visible { outline:3px solid #386da9; outline-offset:3px }.realm-actions { display:flex; align-items:center; gap:10px; flex-wrap:wrap; font-size:13px }
+.realm-table-wrap { overflow-x:auto }.realm-admin table { width:100%; border-collapse:collapse; text-align:left; font-size:14px }.realm-admin th { font-size:11px; text-transform:uppercase; letter-spacing:1px; color:#71695d; background:#f7f6f3 }.realm-admin td,.realm-admin th { padding:16px 12px; border-bottom:1px solid #e7e4df; vertical-align:middle }
+.realm-status { background:#efeeeb; color:#625d55; padding:5px 9px; border-radius:20px; font-size:12px }.realm-status.enabled { background:#e7eee2; color:#365b2e }
+.realm-form-grid { display:grid; grid-template-columns:1fr 1fr; gap:0 24px }.realm-region-row { display:grid; grid-template-columns:2fr 1fr auto; gap:12px; align-items:end }.realm-region-row button { margin-bottom:16px }.realm-admin fieldset { margin:0; padding:0; border:0; min-width:0 }
+.realm-admin details { border-top:1px solid #e7e4df; margin:25px 0; padding:20px 0 0 }.realm-admin summary { cursor:pointer; font-weight:600 }.realm-admin label.realm-checkbox { flex-direction:row; align-items:center }.realm-checkbox input { width:auto; accent-color:#384d32 }
+.realm-error,.realm-success,.realm-setup { padding:14px 18px; border-radius:5px; background:#fff0ed; color:#8a2820; border:1px solid #e8b8af }.realm-success { background:#edf3e8; color:#34502a; border-color:#bacdae }.realm-setup { background:#f7f3e7; border-color:#ddd0a8 }
+.realm-audit { padding:0; list-style:none; max-height:260px; overflow:auto }.realm-audit li { display:flex; gap:24px; border-bottom:1px solid #eee; padding:12px 0; font-size:13px }.realm-audit time { min-width:170px; color:#777066 }
+.realm-delete-dialog { border:1px solid #bbb; border-radius:8px; padding:28px; max-width:470px; font-family:inherit }.realm-delete-dialog::backdrop { background:#0007 }
+@media(max-width:700px) { .realm-heading { align-items:flex-start; flex-direction:column }.realm-form-grid { grid-template-columns:1fr }.realm-panel { padding:18px }.realm-region-row { grid-template-columns:2fr 1fr }.realm-region-row button { margin:0 }.realm-audit li { flex-direction:column; gap:5px }.studio-topbar-sub { display:none } }

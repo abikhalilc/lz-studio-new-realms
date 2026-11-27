@@ -11,6 +11,7 @@ gen/
 ├── config.libsonnet             # Config normalization & auto-subnet calculation
 ├── render_context.libsonnet     # Shared normalized render context for orchestration/adapters
 ├── constants.libsonnet          # Realm-specific constants (service labels, etc.)
+├── realm-defaults.json          # Verified built-in realm catalog shared with Studio
 ├── defaults.libsonnet           # Generic default configs per hub type (for default mode)
 ├── naming.libsonnet             # Single naming template for all resources
 ├── topology.libsonnet           # Shared topology semantics (env labels, platform scope, targeting)

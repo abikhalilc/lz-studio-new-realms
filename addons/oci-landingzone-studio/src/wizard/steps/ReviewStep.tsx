@@ -8,7 +8,8 @@
  * just in the browser. Nothing here reimplements it, so the outputs are the outputs.
  */
 
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type CSSProperties } from 'react';
+import { subscribeRealmCatalog, realmCatalogSnapshot, realmSelectionError } from '../../services/realmCatalog';
 import { useParams } from 'react-router-dom';
 import { useWizard } from '../wizardContext';
 import { containsInlineSecrets, validateHybridConnectivity } from '../../services/hybridConnectivity';
@@ -92,6 +93,7 @@ function DeploymentText({ text }: { text: string }) {
 }
 
 export default function ReviewStep({ designName, getDiagram, diagramReady = true }: { designName: string; getDiagram?: () => DiagramModel; diagramReady?: boolean }) {
+  useSyncExternalStore(subscribeRealmCatalog, realmCatalogSnapshot, realmCatalogSnapshot);
   const { model } = useWizard();
   const regional = model.foundation.stackScope === 'regional';
   const { id } = useParams();
@@ -103,8 +105,9 @@ export default function ReviewStep({ designName, getDiagram, diagramReady = true
     return saved ? splitOutputs(saved.config, saved.files) : null;
   });
 
-  const configText = useMemo(() => serializeConfig(model), [model]);
-  const deploymentConfig = useMemo(() => buildConfig(model), [model]);
+  const configText = serializeConfig(model);
+  const deploymentConfig = buildConfig(model);
+  const selectedRealmError = realmSelectionError(model.foundation);
   const currentConfig = useRef(configText);
   useEffect(() => { currentConfig.current = configText; }, [configText]);
   const hub = getHubKind(model.network.hubKind);
@@ -114,6 +117,7 @@ export default function ReviewStep({ designName, getDiagram, diagramReady = true
     const shortNameError = regionShortNameError(model.foundation.regionShortName);
     const domainError = identityDomainError(model.foundation);
     return [...new Set([
+      ...(selectedRealmError ? [selectedRealmError] : []),
       ...(shortNameError ? [shortNameError] : []),
       ...(domainError ? [domainError] : []),
       ...validatePlatformContracts(model), ...validateExadataModel(model),
@@ -121,7 +125,7 @@ export default function ReviewStep({ designName, getDiagram, diagramReady = true
       ...validateHybridConnectivity(model), ...validateRemotePeering(model), ...validateRegionalDeployment(model),
       ...platformReadiness(model, 'oke_simple').errors,
     ])];
-  }, [model, regional]);
+  }, [model, regional, selectedRealmError]);
   const hasSecrets = containsInlineSecrets(model.hybridConnectivity);
   const consoleLinks = deploymentConsoleLinks(deploymentConfig);
   const prerequisites = deploymentPrerequisites(deploymentConfig);

@@ -32,6 +32,8 @@ import { platformSubnetsForEnv, platformVcnForEnv } from './platforms';
 import { exadataEntries } from './exadata';
 import { hybridConfig, stripInlineSecrets } from './hybridConnectivity';
 import type { HybridConnectivity } from '../model/hybridConnectivity';
+import { realmProfileOverride, sharedRealmCatalog } from './realmCatalog';
+import type { RealmProfile } from '../../shared/realm';
 
 /** Studio exports deploy infrastructure without the published demo ingress. */
 export const STUDIO_DEPLOYMENT_SETTINGS = {
@@ -55,6 +57,7 @@ export interface EnvConfigEntry {
 }
 
 export interface LzConfig {
+  realm_profile?: RealmProfile;
   deployment_settings?: {
     include_example_load_balancer: boolean;
     activate_audit_connector: boolean;
@@ -143,6 +146,7 @@ function platformEntryFor(platform: PlatformConfig, envId: string, index: number
 
 export function buildConfig(model: LzModel, includeExadata = true): LzConfig {
   const f = model.foundation;
+  const realmProfile = realmProfileOverride(f.realm) ?? (!sharedRealmCatalog() && f.realmProfile?.id === f.realm ? f.realmProfile : undefined);
   const notification_emails: NonNullable<LzConfig['notification_emails']> = {};
   const singleRecipient = f.notifications?.useSingleRecipient ?? Boolean(f.notifications?.default);
   for (const topic of (singleRecipient ? ['default'] : ['cloudguard', 'iam', 'network', 'security']) as Array<keyof NonNullable<LzConfig['notification_emails']>>) {
@@ -209,6 +213,7 @@ export function buildConfig(model: LzModel, includeExadata = true): LzConfig {
 
   return {
     deployment_settings: { ...STUDIO_DEPLOYMENT_SETTINGS },
+    ...(realmProfile ? { realm_profile: realmProfile } : {}),
     ...(f.stackScope ? { stack_scope: f.stackScope } : {}),
     ...(f.stackScope !== 'regional' && f.drRegion ? { dr_region: f.drRegion } : {}),
     ...((model.remotePeeringConnections?.length ?? 0) ? { remote_peering_connections: Object.fromEntries(model.remotePeeringConnections!.map((connection) => [connection.name.trim(), {
@@ -289,7 +294,7 @@ function platformEntryLines(name: string, entry: PlatformConfigEntry): string[] 
 
 /** Render a jsonnet value: arrays of strings as ['a', 'b'], strings quoted, else raw. */
 function jsonnetValue(v: unknown): string {
-  if (Array.isArray(v)) return `[${v.map((x) => quote(String(x))).join(', ')}]`;
+  if (Array.isArray(v)) return `[${v.map(jsonnetValue).join(', ')}]`;
   if (typeof v === 'object' && v !== null) {
     return `{ ${Object.entries(v).filter(([, value]) => value !== undefined).map(([k, value]) => `${key(k)}: ${jsonnetValue(value)}`).join(', ')} }`;
   }
@@ -401,6 +406,7 @@ export function serializeConfig(model: LzModel, upToStep = Infinity, redactSecre
     `  region: ${quote(c.region)},`,
     `  region_short_name: ${quote(c.region_short_name)},`,
     `  cis_level: ${c.cis_level},`,
+    ...(c.realm_profile ? [`  realm_profile: ${jsonnetValue(c.realm_profile)},`] : []),
     `  deployment_settings: ${jsonnetValue(c.deployment_settings)},`,
     ...(c.identity_domain ? [`  identity_domain: ${jsonnetValue(c.identity_domain)},`] : []),
     ...(c.stack_scope ? [`  stack_scope: ${quote(c.stack_scope)},`] : []),

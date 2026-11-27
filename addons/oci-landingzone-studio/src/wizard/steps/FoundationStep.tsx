@@ -4,7 +4,8 @@
  * canonical model via the wizard context; the diagram and JSON re-derive.
  */
 
-import React, { useState } from 'react';
+import React, { useState, useSyncExternalStore } from 'react';
+import { realmCatalogSnapshot, subscribeRealmCatalog, realmSelectionError } from '../../services/realmCatalog';
 import { Link } from 'react-router-dom';
 import { useWizard } from '../wizardContext';
 import Switch from '../../components/Switch';
@@ -20,7 +21,7 @@ import { notificationEmailError } from '../../services/notificationEmails';
 import { identityDomainError } from '../../services/identityDomain';
 import { oracle } from '../../theme';
 import {
-  findRegion, getDefaultRegionForRealm, getRegionsForRealm, REALM_OPTIONS, regionShortNameError,
+  findRegion, getDefaultRegionForRealm, getRegionsForRealm, getRealmOptions, regionShortNameError,
 } from '../../services/regions';
 import type { Environment, FoundationConfig, OneOeNotifications } from '../../model/types';
 import { s as form } from './networkEditorStyles';
@@ -62,6 +63,7 @@ export default function FoundationStep({ name, onNameChange, onNameBlur, nameErr
   onNameBlur: () => void;
   nameError?: string | null;
 }) {
+  useSyncExternalStore(subscribeRealmCatalog, realmCatalogSnapshot, realmCatalogSnapshot);
   const { model, setField, homeSource } = useWizard();
   const f = model.foundation;
   const regional = f.stackScope === 'regional';
@@ -178,9 +180,11 @@ export default function FoundationStep({ name, onNameChange, onNameBlur, nameErr
             <div>
               <label style={s.label} htmlFor="lz-realm">Realm</label>
               <select id="lz-realm" value={f.realm} disabled={!!homeSource} onChange={(e) => onRealm(e.target.value)} aria-describedby="lz-realm-help">
-                {REALM_OPTIONS.map((r) => <option key={r.id} value={r.id}>{r.label}</option>)}
+                {!getRealmOptions().some(r => r.id === f.realm) && <option value={f.realm}>{f.realm} — unavailable</option>}
+                {getRealmOptions().map((r) => <option key={r.id} value={r.id}>{r.label}</option>)}
               </select>
               <div id="lz-realm-help" style={{ ...s.help, marginTop: 6 }}>Use the realm that contains your tenancy.</div>
+              <FieldError id="lz-realm-error" error={realmSelectionError(f)} />
             </div>
             <div>
               <div className="studio-info-heading"><label style={s.label} htmlFor="lz-cis-level">CIS benchmark level</label>
@@ -214,6 +218,7 @@ export default function FoundationStep({ name, onNameChange, onNameBlur, nameErr
             <div>
               <label style={s.label} htmlFor="lz-region">{regional ? 'DR region' : 'Region'}</label>
               <select id="lz-region" {...fieldErrorProps('lz-region-error', regionError)} value={f.region} onChange={(e) => onRegion(e.target.value)}>
+                {!!f.region && !regionOptions.some(region => region.id === f.region) && <option value={f.region}>{f.region} — unavailable</option>}
                 {regional && <option value="">Select region</option>}
                 {regionOptions.filter((region) => !regional || region.id !== f.homeRegion).map((r) => (
                   <option key={r.id} value={r.id}>{r.id}</option>

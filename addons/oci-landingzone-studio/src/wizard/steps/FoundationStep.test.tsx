@@ -5,6 +5,7 @@ import { WizardProvider } from '../wizardContext';
 import FoundationStep from './FoundationStep';
 import type { LzModel } from '../../model/types';
 import { MemoryRouter } from 'react-router-dom';
+import { realmCatalogSnapshot, setRealmCatalog } from '../../services/realmCatalog';
 
 function render(model: LzModel) {
   return renderToStaticMarkup(<WizardProvider initialModel={model}>
@@ -13,6 +14,17 @@ function render(model: LzModel) {
 }
 
 describe('observability fields', () => {
+  it('keeps a saved design editable when its realm is deleted from the catalog', () => {
+    const model = emptyLzModel(); Object.assign(model.foundation, { realm: 'oc41', region: 'me-dubai-3', regionShortName: 'pcz' });
+    const catalog = realmCatalogSnapshot();
+    try {
+      setRealmCatalog(catalog.filter(r => r.id !== 'oc41'));
+      const html = render(model);
+      expect(html).toContain('oc41 — unavailable');
+      expect(html).toContain('Ask an administrator');
+      expect(model.foundation.realm).toBe('oc41');
+    } finally { setRealmCatalog(catalog); }
+  });
   it('keeps the old new-domain choice selected without an OCID field', () => {
     const html = render(emptyLzModel());
     expect(html).toContain('id="lz-identity-domain"');

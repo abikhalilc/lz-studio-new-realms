@@ -4,6 +4,7 @@ import type { ExadataNotifications, HubKind, LzModel, OkePlatformParams, Platfor
 import { buildConfig, STUDIO_DEPLOYMENT_SETTINGS } from './lzConfig';
 import { exadataNotificationSource } from './exadata';
 import { identityDomainError } from './identityDomain';
+import { validateRealm } from '../../shared/realm';
 
 type ObjectValue = Record<string, unknown>;
 export interface ImportedConfig { model: LzModel; warnings: string[] }
@@ -187,6 +188,10 @@ export function importConfig(value: unknown): ImportedConfig {
     realm: text(config.realm, 'realm'), region: text(config.region, 'region'),
     regionShortName: text(config.region_short_name, 'region_short_name'), cisLevel,
   };
+  if (config.realm_profile !== undefined) {
+    model.foundation.realmProfile = validateRealm(config.realm_profile);
+    if (model.foundation.realmProfile.id !== model.foundation.realm) invalid('realm_profile.id');
+  }
   if (config.identity_domain !== undefined && config.identity_domain !== null) {
     const domain = object(config.identity_domain, 'identity_domain');
     model.foundation.identityDomain = {

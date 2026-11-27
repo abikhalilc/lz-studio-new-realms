@@ -6,6 +6,7 @@ import { normalizeCidr, overlaps, validateSubnetCidr, validateVcnCidr } from './
 import { notificationEmailError, validateNotificationEmails } from './notificationEmails';
 import { drPlatformNotificationScopes } from './disasterRecoveryNotifications';
 import { deploymentReadme } from './deployment';
+import { loadRealmCatalog, sharedRealmCatalog, realmSelectionError } from './realmCatalog';
 
 type EnvironmentConfig = Omit<EnvConfigEntry, 'project_network'> & { project_network?: EnvConfigEntry['project_network'] };
 interface RpcConfig { remote_cidrs: string[]; peer_region_name: string; peer_id?: string }
@@ -152,6 +153,9 @@ function findRpcKeys(value: unknown): string[] {
 }
 
 export async function generateDrFileBundle(model: LzModel, draft: DrDesignDraft, onProgress?: (message: string) => void): Promise<Record<string, string>> {
+  if (sharedRealmCatalog()) await loadRealmCatalog();
+  const realmError = realmSelectionError(model.foundation);
+  if (realmError) throw new Error(realmError);
   const { home, dr } = buildDrFileConfigs(model, draft);
   const { generateFromConfigCode } = await import('../generator/generate');
   const serialize = (config: RegionalFileConfig) => `${JSON.stringify(config, null, 2)}\n`;

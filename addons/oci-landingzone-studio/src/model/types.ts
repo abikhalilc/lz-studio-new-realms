@@ -14,6 +14,8 @@ import type { ResourceKind } from '../services/generatedResources';
 import type { HybridConnectivity } from './hybridConnectivity';
 
 export interface FoundationConfig {
+  /** Portable realm constants; refreshed from the shared catalog before export. */
+  realmProfile?: import('../../shared/realm').RealmProfile;
   stackScope?: 'complete' | 'regional';
   /** Regional stacks reuse tenancy-level prerequisites from this Home region. */
   homeRegion?: string;

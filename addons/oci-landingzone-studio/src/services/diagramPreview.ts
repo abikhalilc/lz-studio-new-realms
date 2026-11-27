@@ -1,7 +1,11 @@
 import type { LzModel } from '../model/types';
 import type { DiagramPreview, DiagramPreviewResult } from './diagramPreview.worker';
+import { realmSelectionError } from './realmCatalog';
+import { buildConfig } from './lzConfig';
 
 export function loadDiagramPreview(model: LzModel, signal: AbortSignal): Promise<DiagramPreview> {
+  const realmError = realmSelectionError(model.foundation);
+  if (realmError) return Promise.reject(new Error(realmError));
   if (signal.aborted) return Promise.reject(new Error('Diagram preview cancelled.'));
   return new Promise((resolve, reject) => {
     const worker = new Worker(new URL('./diagramPreview.worker.ts', import.meta.url), { type: 'module' });
@@ -26,6 +30,10 @@ export function loadDiagramPreview(model: LzModel, signal: AbortSignal): Promise
       cleanup();
       reject(new Error('Could not load the diagram generator. Retry or reload Studio.'));
     };
-    worker.postMessage(model);
+    const profile = buildConfig(model).realm_profile;
+    // Workers use the same effective profile as exports, including removal of
+    // an imported snapshot when the shared catalog restores built-in defaults.
+    worker.postMessage(profile || model.foundation.realmProfile
+      ? { ...model, foundation: { ...model.foundation, realmProfile: profile } } : model);
   });
 }

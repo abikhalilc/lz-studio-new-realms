@@ -1,5 +1,5 @@
 import type { EnvNetworkConfig, ExadataDesign, LzModel, ProjectConfig } from './types';
-import { getDefaultRegionForRealm } from '../services/regions';
+import { getDefaultRegionForRealm, getRealmOptions } from '../services/regions';
 import { hubKindDefaults } from '../services/hubKinds';
 import { additionalEnvironmentCidr, oneOeEnvironmentCidrs, SHARED_EXACS_CIDR } from '../services/oneOeCidrs';
 import { formatIp, parseCidr } from '../services/cidr';
@@ -38,11 +38,12 @@ export function envNetworkDefaults(index: number, name = ['prod', 'preprod'][ind
 
 /** Initial canonical model. Shared platforms are opt-in. */
 export function emptyLzModel(): LzModel {
-  const region = getDefaultRegionForRealm('oc1');
+  const realm = getRealmOptions()[0]?.id ?? 'oc1';
+  const region = getDefaultRegionForRealm(realm);
   return {
     version: LZ_MODEL_VERSION,
     foundation: {
-      realm: 'oc1',
+      realm,
       region: region?.id ?? 'eu-frankfurt-1',
       regionShortName: region?.shortName ?? 'fra',
       cisLevel: 2,

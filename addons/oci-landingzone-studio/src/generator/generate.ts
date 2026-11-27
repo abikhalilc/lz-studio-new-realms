@@ -24,6 +24,7 @@ import { validateRegionalDeployment } from '../services/regionalDeployment';
 import { regionShortNameError } from '../services/regions';
 import { validateHybridConnectivity } from '../services/hybridConnectivity';
 import { identityDomainError } from '../services/identityDomain';
+import { realmSelectionError, sharedRealmCatalog, loadRealmCatalog } from '../services/realmCatalog';
 
 export interface GeneratedOutputs {
   /** The wizard config that was fed to the generator. */
@@ -93,6 +94,9 @@ export function generateFromUpstreamDefaults(profile: string): Promise<Record<st
 
 /** Run the generator over a wizard model. */
 export async function generateOutputs(model: LzModel): Promise<GeneratedOutputs> {
+  if (sharedRealmCatalog()) await loadRealmCatalog();
+  const realmError = realmSelectionError(model.foundation);
+  if (realmError) throw new GeneratorError(realmError);
   const issues = [...validateHybridConnectivity(model), ...validatePlatformContracts(model), ...validateOkeModel(model), ...validateExadataModel(model), ...validateRemotePeering(model), ...validateRegionalDeployment(model)];
   const shortNameError = regionShortNameError(model.foundation.regionShortName);
   const domainError = identityDomainError(model.foundation);

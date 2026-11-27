@@ -4,6 +4,18 @@ This reference describes the configuration accepted by the OCI LZ Blueprint Fact
 
 The Blueprint Factory accepts JSON and Jsonnet input. Jsonnet is available for advanced reuse and composition; it does not change the supported Blueprint Factory configuration elements.
 
+### Administrated realm profiles
+
+Studio's shared administration exports custom or edited realm metadata in
+`realm_profile`. It carries the realm ID, console/API domains, region identifiers
+and keys, File Storage principal, Object Storage service prefix, optional reporting
+tenancy, and explicit Security Zone policy OCIDs. The factory validates the realm
+match, service identifiers and policy OCIDs before using it. Built-in realm
+defaults live in `gen/realm-defaults.json`; configurations without an override
+retain their existing behavior. See [shared realm administration](../oci-landingzone-studio/README.md#shared-administration)
+for catalog and administrator setup. An added realm requires verified operator
+metadata; copying another realm's policy OCIDs is rejected.
+
 ### Explicit deployment settings
 
 `deployment_settings` controls the following deployment choices. Omitted fields
