@@ -5,6 +5,7 @@ import { promisify } from 'node:util';
 import { readFileSync, existsSync, mkdirSync, chmodSync } from 'node:fs';
 import { dirname, resolve, extname } from 'node:path';
 import { validateRealm, type RealmProfile } from '../shared/realm.ts';
+import type { PolicyImporter } from './policyImport.ts';
 
 const scrypt = promisify(scryptCallback);
 const hash = (text: string) => createHash('sha256').update(text).digest('hex');
@@ -48,7 +49,7 @@ export async function createAdmin(db: DatabaseSync, username: string, password: 
 
 class HttpError extends Error { status: number; constructor(status: number, message: string) { super(message); this.status = status; } }
 
-export function createStudioServer(options: { db: DatabaseSync; secureCookies?: boolean; dist?: string; allowLocalSetup?: boolean }) {
+export function createStudioServer(options: { db: DatabaseSync; secureCookies?: boolean; dist?: string; allowLocalSetup?: boolean; policyImporter?: PolicyImporter }) {
   const { db } = options;
   const localSetupAllowed = (req: IncomingMessage) => {
     const host = new URL('http://' + req.headers.host).hostname;
@@ -121,6 +122,14 @@ export function createStudioServer(options: { db: DatabaseSync; secureCookies?: 
         const user = session(req);
         if (!user) throw new HttpError(401, 'Sign in as an administrator.');
         if (method !== 'GET' && req.headers['x-csrf-token'] !== user.csrf) throw new HttpError(403, 'Session verification failed. Reload and sign in again.');
+        if (path === '/api/admin/policy-sources' && method === 'GET') { send(res, 200, { sources: options.policyImporter?.sources ?? [] }); return; }
+        if (path === '/api/admin/policies/discover' && method === 'POST') {
+          const input = await body(req);
+          if (!options.policyImporter || typeof input.source !== 'string' || typeof input.realm !== 'string') throw new HttpError(400, 'Select a configured policy source.');
+          try { send(res, 200, await options.policyImporter.discover(input.source, input.realm)); }
+          catch (error) { throw new HttpError(400, (error as Error).message); }
+          return;
+        }
         if (path === '/api/admin/logout' && method === 'POST') {
           db.prepare('DELETE FROM sessions WHERE token_hash=?').run(user.token_hash);
           res.setHeader('Set-Cookie', `${COOKIE}=; HttpOnly; SameSite=Strict; Path=/api/admin; Max-Age=0${options.secureCookies ? '; Secure' : ''}`); send(res, 200, { ok: true }); return;

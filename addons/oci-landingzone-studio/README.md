@@ -273,3 +273,44 @@ For first-time setup on your own computer, you can instead start the loopback se
 This optional setup accepts only direct local requests, rejects forwarded requests, and
 closes permanently once the first account exists. Remote deployments should use
 `npm run admin:create` on the server. No default username or password exists.
+
+### Import Security Zone policies
+
+In the realm editor, select **Import policies from realm**, choose a server
+connection, and retrieve policies. Review the policy names, descriptions, actual
+OCIDs and draft additions/removals, then acknowledge the review and select
+**Use reviewed policies in draft**. **Save changes** (or **Create realm**) is the
+only operation that persists them. Cancel leaves the shared catalog unchanged.
+Missing or duplicate matches block importing; additional available policies are
+shown separately and are not automatically enabled.
+
+Install the OCI CLI on the server and configure a credential profile with access
+to list Security Zone policies in the intended tenancy. Keys remain in the server's
+OCI configuration, never in the browser or realm catalog. Create an ignored
+`.studio-data/policy-sources.json` file, for example:
+
+```json
+[
+  {
+    "id": "alloy",
+    "label": "Alloy policy inventory",
+    "realm": "oc41",
+    "region": "me-dubai-3",
+    "profile": "YOUR_SERVER_OCI_PROFILE",
+    "tenancyOcid": "ocid1.tenancy.oc41..REPLACE_WITH_REAL_TENANCY_ID"
+  }
+]
+```
+
+Use real tenancy identifiers; the example is a placeholder. Restart the API after
+changing this file. `STUDIO_POLICY_SOURCES` overrides the configuration file path;
+`STUDIO_OCI_CLI` overrides the CLI executable path. For isolated realms, configure
+OCI region metadata on the server; an optional server-owned `endpoint` field can
+specify the HTTPS Cloud Guard endpoint. Administrators can select only connections
+provisioned by the server operator, not arbitrary profiles or endpoints.
+
+The importer executes only the read-only policy-list command with `--all`, a
+45-second timeout and bounded output. Mapping uses exact Oracle-managed active
+policy names verified against the existing OC41 framework selections. The mapping
+lives in `server/security-policy-mapping.json`; discovery never constructs OCIDs
+or silently adds new policies. Keep the mapping under review as OCI evolves.

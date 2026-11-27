@@ -3,6 +3,7 @@ import TopBar from '../components/TopBar';
 import { loadRealmCatalog, realmCatalogSnapshot, subscribeRealmCatalog } from '../services/realmCatalog';
 import { validateRealm, type RealmProfile } from '../../shared/realm';
 import './realmAdmin.css';
+import PolicyImport from './PolicyImport';
 
 interface Session { authenticated: boolean; username?: string; csrf?: string; configured?: boolean; setupAllowed?: boolean }
 interface AuditEvent { at: string; username: string; action: string; realm_id: string }
@@ -29,6 +30,7 @@ export default function RealmAdmin() {
   const [confirmation, setConfirmation] = useState('');
   const setup = session?.configured === false && session.setupAllowed === true;
   const [username, setUsername] = useState(''); const [password, setPassword] = useState('');
+  const [policyImportRevision, setPolicyImportRevision] = useState(0);
   const editorTitle = useRef<HTMLHeadingElement>(null); const editorOpen = editing !== null;
   useEffect(() => {
     if (editorOpen) { editorTitle.current?.focus({ preventScroll: true }); editorTitle.current?.scrollIntoView({ block: 'start', behavior: 'smooth' }); }
@@ -120,11 +122,12 @@ export default function RealmAdmin() {
           <label>Region {i + 1} key<input required maxLength={3} value={region.shortName} placeholder="abc" onChange={e => change('regions', editing.regions.map((r, n) => n === i ? { ...r, shortName: e.target.value } : r))} /></label>
           <button type="button" disabled={editing.regions.length === 1} aria-label={`Remove region ${i + 1}`} onClick={() => change('regions', editing.regions.filter((_, n) => n !== i))}>Remove</button>
         </div>)}<button type="button" onClick={() => change('regions', [...editing.regions, { id: '', shortName: '' }])}>Add region</button>
+          <PolicyImport key={editing.id} realm={editing.id} current={editing.securityZonePolicies} request={request} onStage={policies => { change('securityZonePolicies', policies); setPolicyImportRevision(v => v + 1); }} />
         <details open={creating}><summary>Generator settings</summary><p>Obtain service principals and policy OCIDs from the realm operator. Leave the reporting tenancy blank when unverified; cross-tenancy report access will be omitted.</p>
           <div className="realm-form-grid"><label>File Storage service principal<input required value={editing.fileStorageService} onChange={e => change('fileStorageService', e.target.value)} /></label>
           <label>Object Storage service prefix<input required value={editing.objectStorageServicePrefix} onChange={e => change('objectStorageServicePrefix', e.target.value)} /></label></div>
           <label>Usage-report tenancy OCID (optional)<input value={editing.usageReportTenancy ?? ''} onChange={e => change('usageReportTenancy', e.target.value || null)} /></label>
-          {(['shared_network', 'environment'] as const).map(kind => <label key={kind}>{kind === 'shared_network' ? 'Shared network' : 'Environment'} Security Zone policy OCIDs <small>One OCID per line, from this realm.</small><textarea required rows={kind === 'environment' ? 7 : 4} defaultValue={editing.securityZonePolicies[kind].join('\n')} onChange={e => change('securityZonePolicies', { ...editing.securityZonePolicies, [kind]: e.target.value.split('\n').map(s => s.trim()).filter(Boolean) })} /></label>)}
+          {(['shared_network', 'environment'] as const).map(kind => <label key={kind}>{kind === 'shared_network' ? 'Shared network' : 'Environment'} Security Zone policy OCIDs <small>One OCID per line, from this realm.</small><textarea required rows={kind === 'environment' ? 7 : 4} key={kind + policyImportRevision} defaultValue={editing.securityZonePolicies[kind].join('\n')} onChange={e => change('securityZonePolicies', { ...editing.securityZonePolicies, [kind]: e.target.value.split('\n').map(s => s.trim()).filter(Boolean) })} /></label>)}
         </details>
         <label className="realm-checkbox"><input type="checkbox" checked={editing.enabled} onChange={e => change('enabled', e.target.checked)} />Enabled for new designs and exports</label>
         <p>Disabling or deleting a realm blocks exports for designs using it. Changes do not update existing ZIP files, stacks or OCI resources.</p>
