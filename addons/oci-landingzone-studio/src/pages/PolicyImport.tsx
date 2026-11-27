@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import type { PolicyPreview, PolicySource } from '../../shared/policyImport';
 import type { RealmProfile } from '../../shared/realm';
 
+import RealmConnections from './RealmConnections';
+
 type Policies = RealmProfile['securityZonePolicies'];
 export default function PolicyImport({ realm, current, request, onStage }: {
   realm: string; current: Policies;
@@ -34,11 +36,12 @@ export default function PolicyImport({ realm, current, request, onStage }: {
       <h3>Import policies from {realm || 'realm'}</h3>
       <p>Retrieve policies using a server connection. Review the framework mapping before adding it to this draft. Nothing is saved until you save the realm.</p>
       {error && <p className="realm-error" role="alert">{error}</p>}
-      {!sources.length && <p>No server connection is configured for this realm. Configure policy-sources.json on the Studio server; see the Studio README.</p>}
+      {!sources.length && <p>No connection is configured for this realm. Add a realm connection below.</p>}
       <label>Realm connection<select disabled={busy} value={source} onChange={e => { setSource(e.target.value); setPreview(null); setReviewed(false); }}>
         <option value="">Select a connection</option>{sources.map(s => <option key={s.id} value={s.id}>{s.label} · {s.region}</option>)}
       </select></label>
       <button type="button" disabled={busy || !source} onClick={() => { void discover(); }}>{busy ? 'Retrieving policies…' : 'Retrieve policies'}</button>
+      <details><summary>Manage realm connections</summary><RealmConnections realm={realm} request={request} onChange={() => { setPreview(null); setReviewed(false); setSource(''); void request('policy-sources').then(v => setSources((v as { sources: PolicySource[] }).sources.filter(s => s.realm === realm))).catch(e => setError((e as Error).message)); }} /></details>
       {preview && <>
         <h3>Review policy mapping</h3><p>{preview.source.label} · {preview.source.realm} · {preview.source.region}</p>
         {(['shared_network', 'environment'] as const).map(group => <p key={group}><strong>{group === 'shared_network' ? 'Shared network' : 'Environment'}</strong>: {proposed[group].length} matched; {proposed[group].filter(id => !current[group].includes(id)).length} added, {current[group].filter(id => !proposed[group].includes(id)).length} removed from the draft.</p>)}

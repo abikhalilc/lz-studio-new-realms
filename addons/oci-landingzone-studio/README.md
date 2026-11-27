@@ -276,8 +276,10 @@ closes permanently once the first account exists. Remote deployments should use
 
 ### Import Security Zone policies
 
-In the realm editor, select **Import policies from realm**, choose a server
-connection, and retrieve policies. Review the policy names, descriptions, actual
+In the realm editor, select **Import policies from realm**. Open **Manage realm
+connections** to add, edit, test or delete connections. Choose a server credential
+profile; its tenancy and region are filled in for review. Save the connection,
+then choose it from **Realm connection** and retrieve policies. Review the policy names, descriptions, actual
 OCIDs and draft additions/removals, then acknowledge the review and select
 **Use reviewed policies in draft**. **Save changes** (or **Create realm**) is the
 only operation that persists them. Cancel leaves the shared catalog unchanged.
@@ -286,7 +288,17 @@ shown separately and are not automatically enabled.
 
 Install the OCI CLI on the server and configure a credential profile with access
 to list Security Zone policies in the intended tenancy. Keys remain in the server's
-OCI configuration, never in the browser or realm catalog. Create an ignored
+OCI configuration, never in the browser or realm catalog. Connection settings are
+stored in the private Studio database and take effect immediately without restarting.
+Changes require an administrator session and CSRF verification, are recorded in
+the activity log, and use revisions to prevent overwriting concurrent changes.
+Deleting a connection retains the server credential profile and saved realm policies.
+
+The UI lists profiles from the server OCI config (`OCI_CLI_CONFIG_FILE` or
+`~/.oci/config`), exposing only profile names, tenancy OCIDs and regions. It does
+not upload or create keys. Provision additional credentials on the server first.
+
+For optional initial provisioning only, create an ignored
 `.studio-data/policy-sources.json` file, for example:
 
 ```json
@@ -302,12 +314,14 @@ OCI configuration, never in the browser or realm catalog. Create an ignored
 ]
 ```
 
-Use real tenancy identifiers; the example is a placeholder. Restart the API after
-changing this file. `STUDIO_POLICY_SOURCES` overrides the configuration file path;
+Use real tenancy identifiers; the example is a placeholder. This file seeds the
+connection database once on first startup; subsequent changes are made through
+the UI. Deleting a seeded connection does not recreate it on restart. `STUDIO_POLICY_SOURCES` overrides the configuration file path;
 `STUDIO_OCI_CLI` overrides the CLI executable path. For isolated realms, configure
 OCI region metadata on the server; an optional server-owned `endpoint` field can
-specify the HTTPS Cloud Guard endpoint. Administrators can select only connections
-provisioned by the server operator, not arbitrary profiles or endpoints.
+specify the HTTPS Cloud Guard endpoint. Administrators can manage connections using registered server profiles. Endpoint
+overrides remain server-managed: the UI cannot add or replace endpoints, or
+change the realm, region or profile of a connection with an endpoint override.
 
 The importer executes only the read-only policy-list command with `--all`, a
 45-second timeout and bounded output. Mapping uses exact Oracle-managed active

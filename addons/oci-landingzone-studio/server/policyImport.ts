@@ -36,12 +36,12 @@ export function mapPolicies(value: unknown, source: PolicySource): PolicyPreview
   const matches = mapping.map(rule => ({ ...rule, candidates: policies.filter(p => p.name === rule.name).map(({ id, description }) => ({ id, description })) }));
   return { source, matches, unused: policies.filter(p => !mapping.some(m => m.name === p.name)), complete: matches.every(m => m.candidates.length === 1) };
 }
-export function createPolicyImporter(sources: Source[], cli = process.env.STUDIO_OCI_CLI ?? 'oci') {
+export function createPolicyImporter(sources: Source[] | (() => Source[]), cli = process.env.STUDIO_OCI_CLI ?? 'oci') {
   let running = false;
   return {
-    sources: sources.map(publicSource),
+    get sources() { return (typeof sources === 'function' ? sources() : sources).map(publicSource); },
     async discover(id: string, realm: string) {
-      const source = sources.find(s => s.id === id && s.realm === realm);
+      const source = (typeof sources === 'function' ? sources() : sources).find(s => s.id === id && s.realm === realm);
       if (!source) throw new Error('Select a configured policy source for this realm.');
       if (running) throw new Error('Another policy import is running. Try again shortly.');
       running = true;

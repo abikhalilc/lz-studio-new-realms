@@ -6,3 +6,5 @@ export interface PolicyPreview {
   unused: { id: string; name: string; description: string }[];
   complete: boolean;
 }
+export interface PolicyConnection extends PolicySource { profile: string; tenancyOcid: string; endpoint?: string; revision?: number }
+export interface CredentialProfile { name: string; tenancyOcid: string; region: string }
