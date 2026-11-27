@@ -314,6 +314,7 @@ function(config, n, realm_constants, topo)
       service_connectors: {
         [n.key_global('SCH', ['MONITOR'])]: {
           display_name: n.display_global('sch', ['monitor']),
+          [if config.deployment_settings.activate_audit_connector then 'activate']: true,
 
           policy: {
             name: 'service-connector-audit-policy',

@@ -161,7 +161,7 @@ it.each(['oc1', 'oc19', 'oc41'] as const)('shows shared deployment guidance for 
     }
     expect(html.includes('4. Verify deployed settings')).toBe(scope === 'complete');
     expect(html.includes('OC41 usage reports:')).toBe(realm === 'oc41');
-    expect(html.includes('inspect any existing tenancy-root target')).toBe(scope === 'complete');
+    expect(html.includes('Security Zone creates its own target for cmp-landingzone')).toBe(scope === 'complete');
   }
 });
 

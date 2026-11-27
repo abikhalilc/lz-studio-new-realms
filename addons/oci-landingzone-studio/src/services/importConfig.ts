@@ -1,7 +1,7 @@
 /** Reconstruct only configurations that Studio can edit without losing values. */
 import { emptyLzModel } from '../model/defaults';
 import type { ExadataNotifications, HubKind, LzModel, OkePlatformParams, PlatformConfig, Subnet } from '../model/types';
-import { buildConfig } from './lzConfig';
+import { buildConfig, STUDIO_DEPLOYMENT_SETTINGS } from './lzConfig';
 import { exadataNotificationSource } from './exadata';
 import { identityDomainError } from './identityDomain';
 
@@ -266,6 +266,7 @@ export function importConfig(value: unknown): ImportedConfig {
     model.sharedPlatforms.push({ ...restored, type: restored.type });
   }
   const warnings: string[] = [];
+  if (config.deployment_settings === undefined) warnings.push('Regenerated exports omit the example hub load balancer, activate audit export, and use Security Zone-owned Cloud Guard coverage. Review the new Plan before updating an existing deployment.');
   if (config.notification_emails === undefined) warnings.push('This export has no notification recipients. Enter them in Foundation before generating a new package.');
   if (model.foundation.stackScope === 'regional') warnings.push('Choose the Home Region in Foundation and review its dependencies in Review before deploying this DR stack.');
   restoreExadata(model, 'exacc', shared, envs, warnings);
@@ -275,6 +276,7 @@ export function importConfig(value: unknown): ImportedConfig {
     return [name, { ...env, projects: env.projects ?? {}, platforms: env.platforms ?? {} }];
   })), security_targets: config.security_targets ?? Object.keys(envs), shared_platforms: config.shared_platforms ?? {} };
   if (config.identity_domain === null) delete expected.identity_domain;
+  expected.deployment_settings = config.deployment_settings ?? STUDIO_DEPLOYMENT_SETTINGS;
   const diff = difference(expected, buildConfig(model));
   if (diff) invalid(diff);
   return { model, warnings };

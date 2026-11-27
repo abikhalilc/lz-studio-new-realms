@@ -46,7 +46,7 @@ function(raw_config)
   local lb_env_name = ctx.lb_env_name;
   local lb_backends = ctx.lb_backends;
   local create_hub_l7_load_balancer =
-    std.length([
+    config.deployment_settings.include_example_load_balancer && std.length([
       entry
       for entry in extension_entries
       if entry.platform_config.extension.type == 'oke_simple'

@@ -6,6 +6,7 @@ local collections = import 'lib/collections.libsonnet';
 local subnet_utils = import 'lib/subnets.libsonnet';
 local validation = import 'lib/validation.libsonnet';
 local identity_domains = import 'lib/identity_domain.libsonnet';
+local deployment_settings = import 'lib/deployment_settings.libsonnet';
 local hybrid_contract = import 'addons/oci-hybrid-connectivity/config.libsonnet';
 
 {
@@ -488,6 +489,9 @@ local hybrid_contract = import 'addons/oci-hybrid-connectivity/config.libsonnet'
       region: region,
       region_short_name: region_short_name,
       realm: realm,
+      deployment_settings: deployment_settings.normalize(
+        if std.objectHas(config, 'deployment_settings') then config.deployment_settings else null
+      ),
       [if identity_domain != null then 'identity_domain']: identity_domain,
       cis_level: cis_level,
       stack_scope: stack_scope,

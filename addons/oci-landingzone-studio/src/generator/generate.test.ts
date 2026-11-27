@@ -216,7 +216,8 @@ describe('generator (go-jsonnet wasm)', () => {
 
     expect(new Set(recipePolicies).size).toBe(26);
     expect(recipePolicies.every((id) => catalog.has(id))).toBe(true);
-    expect(security.cloud_guard_configuration.reporting_region).toBe(region);
+    expect(security.cloud_guard_configuration).toBeUndefined();
+    expect(security.security_zones_configuration.reporting_region).toBe(region);
     expect(policies['PCY-COST-ADMIN-KEY'].statements).toEqual([
       "allow group 'id_lz_common'/'grp-cost-admin' to manage usage-report in tenancy",
       "allow group 'id_lz_common'/'grp-cost-admin' to manage usage-budgets in tenancy",

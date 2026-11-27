@@ -156,6 +156,7 @@ describe('serializeConfig', () => {
       "  region: 'eu-frankfurt-1',",
       "  region_short_name: 'fra',",
       '  cis_level: 2,',
+      "  deployment_settings: { include_example_load_balancer: false, activate_audit_connector: true, cloud_guard_target_scope: 'security_zone' },",
       '  environments: { prod: {}, preprod: {} },',
       "  security_targets: ['prod'],",
       '}',

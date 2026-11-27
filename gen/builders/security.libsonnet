@@ -44,7 +44,9 @@ function(config, n, realm_constants, topo)
 
   // --- Base security (shared across all CIS levels) ---
   local base(cis_level) = {
-    cloud_guard_configuration: {
+    // Security Zones creates and owns its Cloud Guard target. Do not create
+    // an ordinary target in the same compartment: OCI would replace it.
+    [if config.deployment_settings.cloud_guard_target_scope == 'tenancy' then 'cloud_guard_configuration']: {
       compartment_id: 'TENANCY-ROOT',
       reporting_region: config.region,
       self_manage_resources: false,

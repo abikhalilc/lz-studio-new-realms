@@ -4,6 +4,34 @@ This reference describes the configuration accepted by the OCI LZ Blueprint Fact
 
 The Blueprint Factory accepts JSON and Jsonnet input. Jsonnet is available for advanced reuse and composition; it does not change the supported Blueprint Factory configuration elements.
 
+### Explicit deployment settings
+
+`deployment_settings` controls the following deployment choices. Omitted fields
+preserve the published example behavior. Studio writes the values below explicitly:
+
+```json
+"deployment_settings": {
+  "include_example_load_balancer": false,
+  "activate_audit_connector": true,
+  "cloud_guard_target_scope": "security_zone"
+}
+```
+
+| Setting | Default when omitted | Behavior |
+| --- | --- | --- |
+| `include_example_load_balancer` | `true` | `false` omits the example hub L7 load balancer, listeners, backend sets and test backend addresses. It does not remove the hub subnets or change workload-extension load balancer choices. |
+| `activate_audit_connector` | `false` | `true` emits the pinned Service Connector module's `activate: true` in both phases. Verify delivery to the encrypted archive after Apply. |
+| `cloud_guard_target_scope` | `"tenancy"` | `"tenancy"` requests the published root target and retains the pinned module's existing-target handling. `"security_zone"` omits that ordinary target and relies on the target created by the landing-zone Security Zone. Verify its Configuration and Activity detectors after each phase. |
+
+Security Zone creation replaces ordinary Cloud Guard targets in its compartment
+and descendants; do not create a competing target there. See [Oracle's Security
+Zone creation behavior](https://docs.oracle.com/en-us/iaas/Content/security-zone/using/create-security-zone.htm).
+The Security Zone option does not take ownership of the tenancy-root target or
+configure additional Threat detectors and responders. Those require separate
+review. Regional stacks continue to exclude home-owned Cloud Guard and Security
+Zones. Regenerating an applied deployment with different settings can remove
+previously managed example resources; review its Plan before Apply.
+
 ## Table of Contents
 
 [1. Region, Stack Scope, and Security Settings](#1-region-stack-scope-and-security-settings)<br>

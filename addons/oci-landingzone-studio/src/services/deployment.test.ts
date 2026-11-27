@@ -156,10 +156,10 @@ describe('existing Cloud Guard and OC41 reporting guidance', () => {
       config.realm = realm;
       config.cis_level = cis;
       const home = deploymentReadme(config, expectedDeploymentFiles(config));
-      expect(home).toContain('inspect any existing tenancy-root target');
-      expect(home).toContain('A matching name does not prove this stack owns it');
-      expect(home).toContain('Existing targets skipped by the module retain their current recipe attachments');
-      expect(home).toContain('successful Apply alone does not confirm');
+      expect(home).toContain('Security Zone creates its own target for cmp-landingzone');
+      expect(home).toContain('take over the existing tenancy-root target');
+      expect(home).toContain('Audit export is configured ACTIVE');
+      expect(home).toContain('omits the example public hub load balancer');
       expect(home.indexOf('4. Verify deployed settings')).toBeGreaterThan(home.indexOf('3. Update and apply phase 2'));
       expect(home.includes('OC41 usage reports:')).toBe(realm === 'oc41');
       if (realm === 'oc41') {

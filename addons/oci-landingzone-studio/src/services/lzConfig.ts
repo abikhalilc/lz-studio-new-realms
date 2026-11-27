@@ -33,6 +33,13 @@ import { exadataEntries } from './exadata';
 import { hybridConfig, stripInlineSecrets } from './hybridConnectivity';
 import type { HybridConnectivity } from '../model/hybridConnectivity';
 
+/** Studio exports deploy infrastructure without the published demo ingress. */
+export const STUDIO_DEPLOYMENT_SETTINGS = {
+  include_example_load_balancer: false,
+  activate_audit_connector: true,
+  cloud_guard_target_scope: 'security_zone',
+} as const;
+
 /** One platform in the config — a network and, where supported, an extension. */
 export interface PlatformConfigEntry {
   network?: { vcn: string; subnets?: Record<string, string> };
@@ -48,6 +55,11 @@ export interface EnvConfigEntry {
 }
 
 export interface LzConfig {
+  deployment_settings?: {
+    include_example_load_balancer: boolean;
+    activate_audit_connector: boolean;
+    cloud_guard_target_scope: 'tenancy' | 'security_zone';
+  };
   stack_scope?: 'complete' | 'regional';
   dr_region?: string;
   remote_peering_connections?: Record<string, {
@@ -196,6 +208,7 @@ export function buildConfig(model: LzModel, includeExadata = true): LzConfig {
   }
 
   return {
+    deployment_settings: { ...STUDIO_DEPLOYMENT_SETTINGS },
     ...(f.stackScope ? { stack_scope: f.stackScope } : {}),
     ...(f.stackScope !== 'regional' && f.drRegion ? { dr_region: f.drRegion } : {}),
     ...((model.remotePeeringConnections?.length ?? 0) ? { remote_peering_connections: Object.fromEntries(model.remotePeeringConnections!.map((connection) => [connection.name.trim(), {
@@ -388,6 +401,7 @@ export function serializeConfig(model: LzModel, upToStep = Infinity, redactSecre
     `  region: ${quote(c.region)},`,
     `  region_short_name: ${quote(c.region_short_name)},`,
     `  cis_level: ${c.cis_level},`,
+    `  deployment_settings: ${jsonnetValue(c.deployment_settings)},`,
     ...(c.identity_domain ? [`  identity_domain: ${jsonnetValue(c.identity_domain)},`] : []),
     ...(c.stack_scope ? [`  stack_scope: ${quote(c.stack_scope)},`] : []),
     ...(c.dr_region ? [`  dr_region: ${quote(c.dr_region)},`] : []),

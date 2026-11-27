@@ -55,9 +55,15 @@ export function deploymentPrerequisites(config: LzConfig): string[] {
       ? 'Confirm that the Home Region deployment uses the supplied active Default identity domain. DR reuses Home IAM and does not create a domain or groups.'
       : 'Verify that the supplied domain OCID identifies the active Default identity domain in this realm and that the deployment account can manage the requested groups. Check group-name conflicts; this configuration does not adopt existing groups or migrate an existing stack.'] : []),
     ...(!regional ? [
-      'Cloud Guard: inspect any existing tenancy-root target, its coverage and recipes, and the Terraform state that manages it before applying.',
-      'The pinned Security module defaults to skipping an existing Cloud Guard target with a different name. A matching name does not prove this stack owns it. Review any target import, replacement or ownership change separately.',
+      ...(config.deployment_settings?.cloud_guard_target_scope === 'security_zone' ? [
+        'Cloud Guard: the Security Zone creates its own target for cmp-landingzone. Studio does not create a competing ordinary target or take over the existing tenancy-root target. Verify the Security Zone target has Configuration and Activity detectors after Apply. Monitoring outside the landing zone and additional Threat or Responder recipes require separate review.',
+      ] : [
+        'Cloud Guard: inspect any existing tenancy-root target, its coverage and recipes, and the Terraform state that manages it before applying.',
+        'The pinned Security module defaults to skipping an existing Cloud Guard target with a different name. A matching name does not prove this stack owns it. Review any target import, replacement or ownership change separately.',
+      ]),
     ] : []),
+    ...(config.deployment_settings?.include_example_load_balancer === false ? ['Studio omits the example public hub load balancer and its placeholder backends. Configure real application ingress separately when workload endpoints and TLS certificates are available.'] : []),
+    ...(!regional && config.deployment_settings?.activate_audit_connector ? ['Audit export is configured ACTIVE. After Apply, verify that audit objects arrive in the private encrypted archive bucket and confirm notification subscriptions.'] : []),
     ...(config.realm === 'oc41' ? [OC41_CONSOLE_STEP] : []),
     ...(config.realm === 'oc41' ? [regional
       ? 'OC41 usage reports: this DR package contains no IAM configuration. The Home Region package currently omits cross-tenancy usage-report access until an OC41 reporting-tenancy OCID is verified. Verify reporting access with the Home deployment owner.'
@@ -110,7 +116,9 @@ export const HUB_C_BACKEND_STEPS = [
 
 export function deploymentVerification(config: LzConfig): string[] {
   return config.stack_scope === 'regional' ? [] : [
-    "Cloud Guard: verify the deployed tenancy-root target's coverage and attached recipes after Apply. Existing targets skipped by the module retain their current recipe attachments; successful Apply alone does not confirm Studio's requested cloned recipes were attached.",
+    config.deployment_settings?.cloud_guard_target_scope === 'security_zone'
+      ? 'Cloud Guard: verify the Security Zone target for cmp-landingzone has Configuration and Activity detector recipes after Apply. Repeat for the child Security Zones created in phase 2. Review the externally managed tenancy-root target and any Threat or Responder requirements separately.'
+      : "Cloud Guard: verify the deployed tenancy-root target's coverage and attached recipes after Apply. Existing targets skipped by the module retain their current recipe attachments; successful Apply alone does not confirm Studio's requested cloned recipes were attached.",
   ];
 }
 

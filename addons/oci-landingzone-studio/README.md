@@ -117,6 +117,23 @@ Studio intentionally does not replace the Landing Zone framework contract. A res
 
 ## 4. Review and deployment
 
+Studio exports explicitly omit the example hub public load balancer and its
+test backends. Real application ingress requires workload endpoints and TLS
+configuration. Audit export is configured active in both phases.
+
+Cloud Guard coverage inside the landing zone uses the target that OCI creates
+with its Security Zone. Studio does not create an ordinary target in the same
+compartment: [Security Zone creation replaces ordinary targets](https://docs.oracle.com/en-us/iaas/Content/security-zone/using/create-security-zone.htm).
+After each phase, verify Configuration and Activity detectors on every Security
+Zone target. The existing tenancy-root target is externally managed. Monitoring
+outside the landing zone, extra Threat detectors, and responder automation need
+separate review. This does not certify CIS compliance.
+
+Older Studio designs acquire these settings when regenerated. When updating an
+already applied stack, review removal of any example load balancer or ordinary
+Cloud Guard target before approving Apply. Previously downloaded ZIPs and staged
+bucket objects do not change automatically.
+
 The Studio download is a deployment input, not an automatic deployment. The ZIP contains the design configuration, generated JSON artifacts, a per-design `resource-manager-template.zip`, and a `README.txt` with the matching deployment file lists. Review it in your normal architecture, network, security, and change-management processes. The design source `config.jsonnet`, README and diagram exports are not Terraform deployment inputs.
 
 Before deployment:
